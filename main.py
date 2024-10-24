@@ -1,6 +1,6 @@
 import pygame
 from scene_manager import SceneManager
-from battle_scene import BattleScene
+from menu_scene import MenuScene
 
 def main():
     pygame.init()
@@ -8,8 +8,8 @@ def main():
     clock = pygame.time.Clock()
 
     scene_manager = SceneManager()
-    battle_scene = BattleScene()
-    scene_manager.set_scene(battle_scene)
+    menu_scene = MenuScene(scene_manager)
+    scene_manager.set_scene(menu_scene)
 
     running = True
     while running:
