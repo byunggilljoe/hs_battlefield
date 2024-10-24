@@ -8,7 +8,7 @@ class Particle:
         self.x = x
         self.y = y
         self.color = color if len(color) == 4 else color + (255,)
-        self.radius = random.uniform(1, 3)
+        self.radius = random.uniform(3, 6)  # Increase the size range
         self.speed = random.uniform(1, 3) * speed_multiplier
         self.angle = direction
         self.lifetime = random.randint(20, 40)

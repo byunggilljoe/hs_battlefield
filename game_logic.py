@@ -106,19 +106,22 @@ def handle_attack(player_units, enemy_units):
     attacking_unit = game_state["attacking_unit"]
     target_unit = game_state["target_unit"]
 
-    # move_to_target() 결과를 한 번만 호출하고 저장
     move_status = attacking_unit.move_to_target()
 
     if move_status == "attack":
         attacking_unit.update_health(attacking_unit.health - target_unit.attack)
         target_unit.update_health(target_unit.health - attacking_unit.attack)
         attacking_unit.returning = True
+
+        # Create particles for both units
+        attacking_unit.create_particles()
+        target_unit.create_particles()
         
     elif move_status == "returned":
         if target_unit.health <= 0:
-            target_unit.prepare_to_fade()  # 실제 페이딩 시작
+            target_unit.prepare_to_fade()
         if attacking_unit.health <= 0:
-            attacking_unit.prepare_to_fade()  # 실제 페이딩 시작
+            attacking_unit.prepare_to_fade()
         game_state["waiting_for_fade"] = True
         game_state["attacking_unit"] = None
         game_state["target_unit"] = None

@@ -127,10 +127,12 @@ class Unit:
         return self.fading and self.fade_alpha > 0
 
     def create_particles(self):
-        for _ in range(30):
-            particle_x = self.x + 25 + random.uniform(-10, 10)
-            particle_y = self.y + 50 + random.uniform(-10, 10)
-            self.particles.append(Particle(particle_x, particle_y, self.color, random.uniform(0, 2*math.pi)))
+        # Create particles at the unit's position
+        for _ in range(10):  # Number of particles
+            direction = random.uniform(0, 2 * math.pi)
+            speed_multiplier = random.uniform(0.5, 1.5)
+            particle = Particle(self.x, self.y, self.color, direction, speed_multiplier)
+            self.particles.append(particle)
 
     def update_particles(self):
         for particle in self.particles[:]:
