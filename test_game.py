@@ -199,7 +199,6 @@ game_state = {
     "enemy_attack_index": 0,
     "attacking_unit": None,
     "target_unit": None,
-    "attack_animation_frames": 0
 }
 
 def reset_game():
@@ -408,8 +407,6 @@ while running:
         else:
             handle_attack()
 
-        if game_state["attack_animation_frames"] > 0:
-            game_state["attack_animation_frames"] -= 1
 
         update_units()
 
