@@ -40,10 +40,15 @@ class BattleScene(Scene):
         for unit in self.player_units + self.enemy_units:
             if not unit.dead and unit != self.game_state["attacking_unit"]:
                 unit.draw(screen)
+            for particle in unit.particles:
+                particle.update()
+                particle.draw(screen)
 
-        # Draw the attacking unit last
         if self.game_state["attacking_unit"] and not self.game_state["attacking_unit"].dead:
             self.game_state["attacking_unit"].draw(screen)
+            for particle in self.game_state["attacking_unit"].particles:
+                particle.update()
+                particle.draw(screen)
 
         # Display game over message
         if self.game_state["game_over"]:
