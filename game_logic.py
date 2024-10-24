@@ -112,10 +112,6 @@ def handle_attack(player_units, enemy_units):
     if move_status == "attack":
         attacking_unit.update_health(attacking_unit.health - target_unit.attack)
         target_unit.update_health(target_unit.health - attacking_unit.attack)
-        if target_unit.health <= 0:
-            target_unit.start_fading()
-        if attacking_unit.health <= 0:
-            attacking_unit.start_fading()
         attacking_unit.returning = True
         
     elif move_status == "returned":

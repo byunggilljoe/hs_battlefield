@@ -30,8 +30,9 @@ class Unit:
         self.acceleration = 0.5
         self.should_fade = False
         self.fade_alpha = 50
-        self.fade_speed = 5
+        self.fade_speed = 1  # 기존값을 더 작게 변경 (예: 5 -> 3)
         self.ready_to_fade = False  # 새로운 속성 추가
+        self.opacity = 255  # 새로운 속성 추가
 
     def draw(self, screen):
         if self.fading and self.ready_to_fade:
@@ -80,7 +81,7 @@ class Unit:
         self.health_animation_time = 0
         if self.health <= 0:
             self.health = 0
-            self.dead = True
+            self.start_fading()  # dead = True 대신 페이딩 시작
             self.should_create_particles = True
 
     def move_to_target(self):
@@ -156,9 +157,9 @@ class Unit:
         return self.fade_alpha <= 0
 
     def update(self):
-        if self.fading and self.ready_to_fade:
-            self.fade_alpha = max(0, self.fade_alpha - self.fade_speed)
-            if self.fade_alpha <= 0:
+        if self.fading:
+            self.opacity = max(0, self.opacity - self.fade_speed)  # fade_speed 값이 작을수록 천천히 사라짐
+            if self.opacity <= 0:
                 self.dead = True
 
     def prepare_to_fade(self):
