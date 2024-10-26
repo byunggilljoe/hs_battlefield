@@ -14,36 +14,36 @@ from game_state import game_state
 
 class BattleScene(Scene):
     def __init__(self):
-        self.player_units, self.enemy_units = reset_game()
+        reset_game()
         self.game_state = game_state
 
     def update(self):
-        print("game_over:", self.game_state["game_over"],
-         "initial_adjustment:", self.game_state["initial_adjustment"],
-          "waiting_for_fade:", self.game_state["waiting_for_fade"],
-           "adjusting_positions:", self.game_state["adjusting_positions"],
-            "attacking_unit:", self.game_state["attacking_unit"])
+        # print("game_over:", self.game_state["game_over"],
+        #  "initial_adjustment:", self.game_state["initial_adjustment"],
+        #   "waiting_for_fade:", self.game_state["waiting_for_fade"],
+        #    "adjusting_positions:", self.game_state["adjusting_positions"],
+        #     "attacking_unit:", self.game_state["attacking_unit"])
             
         if not self.game_state["game_over"]:
             if self.game_state["initial_adjustment"]:
-                handle_initial_adjustment(self.player_units, self.enemy_units)
+                handle_initial_adjustment(self.game_state["player_units"], self.game_state["enemy_units"])
             elif self.game_state["waiting_for_fade"]:
-                self.player_units, self.enemy_units = handle_fading(self.player_units, self.enemy_units)
+                handle_fading(self.game_state["player_units"], self.game_state["enemy_units"])
             elif self.game_state["adjusting_positions"]:
-                handle_position_adjustment(self.player_units, self.enemy_units)
+                handle_position_adjustment(self.game_state["player_units"], self.game_state["enemy_units"])
             elif self.game_state["attacking_unit"] is None:
-                select_units_for_attack(self.player_units, self.enemy_units)
+                select_units_for_attack(self.game_state["player_units"], self.game_state["enemy_units"])
             else:
-                handle_attack(self.player_units, self.enemy_units)
+                handle_attack(self.game_state["player_units"], self.game_state["enemy_units"])
 
-            update_units(self.player_units, self.enemy_units)
-        check_game_over(self.player_units, self.enemy_units)
+            update_units(self.game_state["player_units"], self.game_state["enemy_units"])
+        check_game_over(self.game_state["player_units"], self.game_state["enemy_units"])
 
     def draw(self, screen):
         screen.fill((255, 255, 255))  # Fill the screen with white
 
         # Draw non-attacking units first
-        for unit in self.player_units + self.enemy_units:
+        for unit in self.game_state["player_units"] + self.game_state["enemy_units"]:
             if not unit.dead and unit != self.game_state["attacking_unit"]:
                 unit.draw(screen)
 
@@ -52,7 +52,7 @@ class BattleScene(Scene):
             self.game_state["attacking_unit"].draw(screen)
 
         # Draw all particles last (on top of everything)
-        for unit in self.player_units + self.enemy_units:
+        for unit in self.game_state["player_units"] + self.game_state["enemy_units"]:
             for particle in unit.particles:
                 particle.update()
                 particle.draw(screen)
@@ -65,7 +65,7 @@ class BattleScene(Scene):
         # Display game over message
         if self.game_state["game_over"]:
             font = pygame.font.Font(None, 74)
-            if not self.player_units:
+            if not self.game_state["player_units"]:
                 text = font.render("Enemy Win!", True, (255, 0, 0))
             else:
                 text = font.render("Player Win!", True, (0, 0, 255))
@@ -83,5 +83,5 @@ class BattleScene(Scene):
             exit()
         elif event.type == pygame.KEYDOWN and self.game_state["game_over"]:
             if event.key == pygame.K_SPACE:
-                self.player_units, self.enemy_units = reset_game()
+                reset_game()
                 self.game_state["game_over"] = False

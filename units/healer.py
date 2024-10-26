@@ -4,9 +4,9 @@ import math
 from particle import Particle
 
 class Healer(Unit):
-    def __init__(self, x, y, health, attack, color):
-        super().__init__(x, y, health, attack, color)
-
+    def __init__(self, x, y, health, attack, color, game_state):
+        super().__init__(x, y, health, attack, color, game_state)
+        self.name="Healer"
         
     def on_start_move(self):
         self.health = self.health * 2
@@ -15,10 +15,10 @@ class Healer(Unit):
             
             
     def create_heal_particles(self):
-        heal_color = (255, 223, 186)  # 밝은 노란색
+        heal_color = (0, 255, 0)  # 밝은 노란색
         for _ in range(20):
-            particle_x = self.x + random.uniform(-20, 20)
-            particle_y = self.y + random.uniform(-20, 20)
+            particle_x = self.x + 25 + random.uniform(-20, 20)
+            particle_y = self.y + 50 + random.uniform(-20, 20)
             self.particles.append(Particle(particle_x, particle_y, heal_color,
                                         random.uniform(0, 2*math.pi),
                                         speed_multiplier=1.2,

@@ -4,10 +4,9 @@ import math
 from particle import Particle
 
 class Splash(Unit):
-    def __init__(self, x, y, health, attack, color):
-        super().__init__(x, y, health, attack, color)
-        self.speed = 2
-        self.attack_range = 100
+    def __init__(self, x, y, health, attack, color, game_state):
+        super().__init__(x, y, health, attack, color, game_state)
+        self.name="Splash"
         
     def on_attack(self, target, player_units, enemy_units, game_state=None):
         # 타겟이 적군인지 아군인지에 따라 공격할 유닛 리스트 선택

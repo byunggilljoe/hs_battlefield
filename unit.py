@@ -5,7 +5,8 @@ from constants import screen, WIDTH, HEIGHT
 from particle import Particle
 
 class Unit:
-    def __init__(self, x, y, health, attack, color):
+    def __init__(self, x, y, health, attack, color, game_state):
+        self.name = "Unit"
         self.original_x = x
         self.original_y = y
         self.x = x
@@ -33,6 +34,7 @@ class Unit:
         self.fade_speed = 1  # 기존값을 더 작게 변경 (예: 5 -> 3)
         self.ready_to_fade = False  # 새로운 속성 추가
         self.opacity = 255  # 새로운 속성 추가
+        self.game_state = game_state
 
     def draw(self, screen):
         if self.fading and self.ready_to_fade:
@@ -47,6 +49,13 @@ class Unit:
 
         font = pygame.font.Font(None, 24)
         
+        # 유닛 이름 그리기
+        name_font = pygame.font.Font(None, 20)
+        name_text = name_font.render(self.name, True, (255, 255, 255))
+        name_text.set_alpha(self.fade_alpha if self.fading and self.ready_to_fade else 255)
+        name_rect = name_text.get_rect(center=(self.x + 25, self.y + 50))
+        screen.blit(name_text, name_rect)
+
         health_size = 24 + self.health_animation
         health_font = pygame.font.Font(None, int(health_size))
         health_text = health_font.render(str(self.health), True, (0, 0, 0))
@@ -80,7 +89,6 @@ class Unit:
         self.health_animation = 10
         self.health_animation_time = 0
         if self.health <= 0:
-            self.on_death()
             self.health = 0
             self.start_fading()  # dead = True 대신 페이딩 시작
             self.should_create_particles = True
@@ -114,19 +122,11 @@ class Unit:
                     return "attack"
                 else:
                     self.moving = False
-                    
-                    if self.target_unit.should_create_particles:
-                        self.target_unit.create_particles()
-                        self.target_unit.should_create_particles = False
-
                     self.target_unit = None
                     self.returning = False
                     self.current_speed = 0.5
                     self.start_attack_x = None
                     self.start_attack_y = None
-                    if self.should_create_particles:
-                        self.create_particles()
-                        self.should_create_particles = False
                     return "returned"
         else:
             self.moving = False
@@ -183,13 +183,16 @@ class Unit:
     def prepare_to_fade(self):
         self.ready_to_fade = True  # 이제 페이딩을 시작할 준비가 됨
 
+    def apply_damage(self, target_unit):
+        target_unit.update_health(target_unit.health - self.attack)
+        
     def handle_combat(self, target_unit, player_units, enemy_units):
         move_status = self.move_to_target()
         
         if move_status == "attack":
             self.on_attack(target_unit, player_units, enemy_units)
-            self.update_health(self.health - target_unit.attack)
-            target_unit.update_health(target_unit.health - self.attack)
+            self.apply_damage(target_unit)
+            target_unit.apply_damage(self)
             self.returning = True
             
             # 기본 충돌 방향에 랜덤한 변화(-0.5 ~ 0.5 라디안, 약 ±28.6도) 추가
@@ -201,29 +204,28 @@ class Unit:
             # 추가 전투 로직을 구현할 수 있습니다
             
         elif move_status == "returned":
-            # 모든 플레이어 유닛 체크
-            for unit in player_units:
+            for unit in player_units + enemy_units:
                 if unit.health <= 0 and not unit.ready_to_fade:
                     unit.prepare_to_fade()
+                    unit.on_death()
+                if unit.should_create_particles:
+                    unit.create_particles()
+                    unit.should_create_particles = False
             
-            # 모든 적 유닛 체크
-            for unit in enemy_units:
-                if unit.health <= 0 and not unit.ready_to_fade:
-                    unit.prepare_to_fade()
                     
             return "completed"
         
         return "in_progress"
     
-    def on_spawn(self, player_units, enemy_units, game_state=None):
+    def on_spawn(self, player_units, enemy_units):
         pass
     
     def on_start_move(self):
         pass
 
-    def on_attack(self, target, player_units, enemy_units, game_state=None):
+    def on_attack(self, target, player_units, enemy_units):
         pass
     
-    def on_death(self, game_state=None):
+    def on_death(self):
         pass
 

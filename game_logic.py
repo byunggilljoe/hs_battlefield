@@ -5,13 +5,15 @@ from unit import Unit
 from units.venom import Venom
 from units.splash import Splash
 from units.healer import Healer
+from units.phoenix import Phoenix
 from game_state import game_state
 
 def reset_game():
-    player_units = [Healer(0, HEIGHT // 2 - 150, random.randint(10, 50), random.randint(10, 20), BLUE) for _ in range(4)]
-    enemy_units = [Splash(0, HEIGHT // 2 + 50, random.randint(50, 100), random.randint(10, 20), RED) for _ in range(4)]
-    print(f"Reset game - Player units: {len(player_units)}, Enemy units: {len(enemy_units)}")  # 디버그 출력 추가
-    return player_units, enemy_units
+    game_state["player_units"] = [Healer(0, HEIGHT // 2 - 150, random.randint(10, 50), random.randint(10, 20), BLUE, game_state) for _ in range(3)]
+    #game_state["player_units"]= [Healer(0, HEIGHT // 2 - 150, random.randint(10, 50), random.randint(10, 20), BLUE, game_state)]
+    game_state["player_units"].append(Phoenix(0, HEIGHT // 2 - 150, random.randint(25, 50), random.randint(15, 25), BLUE, game_state))
+    game_state["enemy_units"] = [Splash(0, HEIGHT // 2 + 50, random.randint(50, 100), random.randint(10, 20), RED, game_state) for _ in range(4)]
+    # print(f"Reset game - Player units: {len(game_state)}, Enemy units: {len(game_state["enemy_units"])}")  # 디버그 출력 추가
 
 def adjust_unit_positions(units, y):
     alive_units = [unit for unit in units if not unit.dead]
@@ -109,13 +111,13 @@ def handle_attack(player_units, enemy_units):
     attacking_unit = game_state["attacking_unit"]
     target_unit = game_state["target_unit"]
 
-    # 공격 로직을 Unit 클래스로 이동
     attack_status = attacking_unit.handle_combat(target_unit, player_units, enemy_units)
     
     if attack_status == "completed":
         game_state["waiting_for_fade"] = True
         game_state["attacking_unit"] = None
         game_state["target_unit"] = None
+
 
 def update_units(player_units, enemy_units):
     for unit in player_units + enemy_units:
