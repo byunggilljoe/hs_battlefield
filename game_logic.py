@@ -2,10 +2,11 @@ import math
 import random
 from constants import WIDTH, HEIGHT, BLUE, RED
 from unit import Unit
+from units.venom import Venom
 from game_state import game_state
 
 def reset_game():
-    player_units = [Unit(0, HEIGHT // 2 - 150, random.randint(50, 100), random.randint(10, 20), BLUE) for _ in range(4)]
+    player_units = [Venom(0, HEIGHT // 2 - 150, random.randint(50, 100), random.randint(10, 20), BLUE) for _ in range(4)]
     enemy_units = [Unit(0, HEIGHT // 2 + 50, random.randint(50, 100), random.randint(10, 20), RED) for _ in range(4)]
     print(f"Reset game - Player units: {len(player_units)}, Enemy units: {len(enemy_units)}")  # 디버그 출력 추가
     return player_units, enemy_units

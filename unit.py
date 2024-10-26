@@ -80,6 +80,7 @@ class Unit:
         self.health_animation = 10
         self.health_animation_time = 0
         if self.health <= 0:
+            self.on_death()
             self.health = 0
             self.start_fading()  # dead = True 대신 페이딩 시작
             self.should_create_particles = True
@@ -182,6 +183,7 @@ class Unit:
         move_status = self.move_to_target()
         
         if move_status == "attack":
+            self.on_attack(target_unit, player_units, enemy_units)
             self.update_health(self.health - target_unit.attack)
             target_unit.update_health(target_unit.health - self.attack)
             self.returning = True
@@ -202,3 +204,12 @@ class Unit:
             return "completed"
         
         return "in_progress"
+    
+    def on_spawn(self, player_units, enemy_units, game_state=None):
+        pass
+    
+    def on_attack(self, target, player_units, enemy_units, game_state=None):
+        pass
+    
+    def on_death(self, game_state=None):
+        pass
