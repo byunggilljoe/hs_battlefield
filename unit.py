@@ -127,11 +127,14 @@ class Unit:
         return self.fading and self.fade_alpha > 0
 
     def create_particles(self):
-        # Create particles at the unit's position
+        # Create particles at the unit's center
+        unit_center_x = self.x + 25  # Assuming the unit's width is 50
+        unit_center_y = self.y + 50  # Assuming the unit's height is 100
+
         for _ in range(10):  # Number of particles
             direction = random.uniform(0, 2 * math.pi)
             speed_multiplier = random.uniform(0.5, 1.5)
-            particle = Particle(self.x, self.y, self.color, direction, speed_multiplier)
+            particle = Particle(unit_center_x, unit_center_y, self.color, direction, speed_multiplier)
             self.particles.append(particle)
 
     def update_particles(self):
@@ -145,7 +148,8 @@ class Unit:
         for _ in range(20):
             particle_x = self.x + 25 + random.uniform(-10, 10)
             particle_y = self.y + 50 + random.uniform(-10, 10)
-            self.particles.append(Particle(particle_x, particle_y, dust_color, direction, speed_multiplier=2))
+            # 충돌 파티클은 더 큰 크기 범위를 가짐 (3-8)
+            self.particles.append(Particle(particle_x, particle_y, dust_color, direction, speed_multiplier=2, size_range=(3, 12)))
 
     def reset_attack_start_position(self):
         self.start_attack_x = None
@@ -166,3 +170,29 @@ class Unit:
 
     def prepare_to_fade(self):
         self.ready_to_fade = True  # 이제 페이딩을 시작할 준비가 됨
+
+    def handle_combat(self, target_unit, player_units, enemy_units):
+        move_status = self.move_to_target()
+        
+        if move_status == "attack":
+            # 실제 전투 처리
+            self.update_health(self.health - target_unit.attack)
+            target_unit.update_health(target_unit.health - self.attack)
+            self.returning = True
+            
+            # 파티클 생성
+            collision_direction = math.atan2(target_unit.y - self.original_y, target_unit.x - self.original_x)
+            self.create_collision_particles(collision_direction)
+            target_unit.create_collision_particles(collision_direction + math.pi)
+            
+            # 여기서 추가로 player_units와 enemy_units를 활용한 
+            # 추가 전투 로직을 구현할 수 있습니다
+            
+        elif move_status == "returned":
+            if target_unit.health <= 0:
+                target_unit.prepare_to_fade()
+            if self.health <= 0:
+                self.prepare_to_fade()
+            return "completed"
+        
+        return "in_progress"
