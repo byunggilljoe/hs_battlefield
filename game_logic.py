@@ -16,7 +16,7 @@ def reset_game():
     # print(f"Reset game - Player units: {len(game_state)}, Enemy units: {len(game_state["enemy_units"])}")  # 디버그 출력 추가
 
 def adjust_unit_positions(units, y):
-    alive_units = [unit for unit in units if not unit.dead]
+    alive_units = [unit for unit in units ] # if not unit.dead
     if not alive_units:
         return True
 

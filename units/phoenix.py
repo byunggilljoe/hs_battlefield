@@ -26,6 +26,6 @@ class Phoenix(Unit):
             new_venom = Venom(self.x, self.y, random.randint(30, 50), random.randint(5, 15), self.color, self.game_state)
             
             # 생성된 Healer를 자신의 위치에 추가
-            team_units.insert(index, new_venom)
+            team_units.insert(index+1, new_venom)
         self.game_state["adjusting_positions"] = True
         print(f"Phoenix died at ({self.x}, {self.y}). New Venom spawned!")
