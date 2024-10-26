@@ -91,6 +91,8 @@ class Unit:
 
         if self.target_unit:
             if self.start_attack_x is None:
+                # starts to move
+                self.on_start_move()
                 self.start_attack_x = self.x
                 self.start_attack_y = self.y
 
@@ -120,6 +122,8 @@ class Unit:
                     self.target_unit = None
                     self.returning = False
                     self.current_speed = 0.5
+                    self.start_attack_x = None
+                    self.start_attack_y = None
                     if self.should_create_particles:
                         self.create_particles()
                         self.should_create_particles = False
@@ -197,10 +201,16 @@ class Unit:
             # 추가 전투 로직을 구현할 수 있습니다
             
         elif move_status == "returned":
-            if target_unit.health <= 0:
-                target_unit.prepare_to_fade()
-            if self.health <= 0:
-                self.prepare_to_fade()
+            # 모든 플레이어 유닛 체크
+            for unit in player_units:
+                if unit.health <= 0 and not unit.ready_to_fade:
+                    unit.prepare_to_fade()
+            
+            # 모든 적 유닛 체크
+            for unit in enemy_units:
+                if unit.health <= 0 and not unit.ready_to_fade:
+                    unit.prepare_to_fade()
+                    
             return "completed"
         
         return "in_progress"
@@ -208,8 +218,12 @@ class Unit:
     def on_spawn(self, player_units, enemy_units, game_state=None):
         pass
     
+    def on_start_move(self):
+        pass
+
     def on_attack(self, target, player_units, enemy_units, game_state=None):
         pass
     
     def on_death(self, game_state=None):
         pass
+

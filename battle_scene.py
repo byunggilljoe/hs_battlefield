@@ -18,6 +18,12 @@ class BattleScene(Scene):
         self.game_state = game_state
 
     def update(self):
+        print("game_over:", self.game_state["game_over"],
+         "initial_adjustment:", self.game_state["initial_adjustment"],
+          "waiting_for_fade:", self.game_state["waiting_for_fade"],
+           "adjusting_positions:", self.game_state["adjusting_positions"],
+            "attacking_unit:", self.game_state["attacking_unit"])
+            
         if not self.game_state["game_over"]:
             if self.game_state["initial_adjustment"]:
                 handle_initial_adjustment(self.player_units, self.enemy_units)
