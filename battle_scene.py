@@ -40,12 +40,18 @@ class BattleScene(Scene):
         for unit in self.player_units + self.enemy_units:
             if not unit.dead and unit != self.game_state["attacking_unit"]:
                 unit.draw(screen)
+
+        # Draw attacking unit if exists
+        if self.game_state["attacking_unit"] and not self.game_state["attacking_unit"].dead:
+            self.game_state["attacking_unit"].draw(screen)
+
+        # Draw all particles last (on top of everything)
+        for unit in self.player_units + self.enemy_units:
             for particle in unit.particles:
                 particle.update()
                 particle.draw(screen)
-
-        if self.game_state["attacking_unit"] and not self.game_state["attacking_unit"].dead:
-            self.game_state["attacking_unit"].draw(screen)
+        
+        if self.game_state["attacking_unit"]:
             for particle in self.game_state["attacking_unit"].particles:
                 particle.update()
                 particle.draw(screen)

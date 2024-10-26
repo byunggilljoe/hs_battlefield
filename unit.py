@@ -111,6 +111,11 @@ class Unit:
                     return "attack"
                 else:
                     self.moving = False
+                    
+                    if self.target_unit.should_create_particles:
+                        self.target_unit.create_particles()
+                        self.target_unit.should_create_particles = False
+
                     self.target_unit = None
                     self.returning = False
                     self.current_speed = 0.5
@@ -144,12 +149,14 @@ class Unit:
                 self.particles.remove(particle)
 
     def create_collision_particles(self, direction):
-        dust_color = (139, 69, 19)
-        for _ in range(20):
+        dust_color = (128, 128, 128)  # 회색으로 변경 (R=128, G=128, B=128)
+        for i in range(20):
             particle_x = self.x + 25 + random.uniform(-10, 10)
             particle_y = self.y + 50 + random.uniform(-10, 10)
+            # 방사형으로 퍼지는 방향 계산
+            radial_direction = direction + (i / 20) * 2 * math.pi
             # 충돌 파티클은 더 큰 크기 범위를 가짐 (3-8)
-            self.particles.append(Particle(particle_x, particle_y, dust_color, direction, speed_multiplier=2, size_range=(3, 12)))
+            self.particles.append(Particle(particle_x, particle_y, dust_color, radial_direction, speed_multiplier=0.5, size_range=(3, 8)))
 
     def reset_attack_start_position(self):
         self.start_attack_x = None
@@ -175,15 +182,14 @@ class Unit:
         move_status = self.move_to_target()
         
         if move_status == "attack":
-            # 실제 전투 처리
             self.update_health(self.health - target_unit.attack)
             target_unit.update_health(target_unit.health - self.attack)
             self.returning = True
             
-            # 파티클 생성
+            # 기본 충돌 방향에 랜덤한 변화(-0.5 ~ 0.5 라디안, 약 ±28.6도) 추가
             collision_direction = math.atan2(target_unit.y - self.original_y, target_unit.x - self.original_x)
-            self.create_collision_particles(collision_direction)
-            target_unit.create_collision_particles(collision_direction + math.pi)
+            self.create_collision_particles(collision_direction + random.uniform(-0.25, 0.25))
+            target_unit.create_collision_particles(collision_direction + math.pi + random.uniform(-0.25, 0.25))
             
             # 여기서 추가로 player_units와 enemy_units를 활용한 
             # 추가 전투 로직을 구현할 수 있습니다
