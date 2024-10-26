@@ -6,14 +6,21 @@ from units.venom import Venom
 from units.splash import Splash
 from units.healer import Healer
 from units.phoenix import Phoenix
+from units.bomber import Bomber  # 파일 상단에 추가
 from game_state import game_state
 
 def reset_game():
-    game_state["player_units"] = [Healer(0, HEIGHT // 2 - 150, random.randint(10, 50), random.randint(10, 20), BLUE, game_state) for _ in range(3)]
-    #game_state["player_units"]= [Healer(0, HEIGHT // 2 - 150, random.randint(10, 50), random.randint(10, 20), BLUE, game_state)]
-    game_state["player_units"].append(Phoenix(0, HEIGHT // 2 - 150, random.randint(25, 50), random.randint(15, 25), BLUE, game_state))
-    game_state["enemy_units"] = [Splash(0, HEIGHT // 2 + 50, random.randint(50, 100), random.randint(10, 20), RED, game_state) for _ in range(4)]
-    # print(f"Reset game - Player units: {len(game_state)}, Enemy units: {len(game_state["enemy_units"])}")  # 디버그 출력 추가
+    game_state["player_units"] = [
+        Bomber(0, HEIGHT // 2 - 150, random.randint(5, 10), random.randint(15, 20), BLUE, game_state),  # Bomber 추가,
+        Healer(0, HEIGHT // 2 - 150, random.randint(10, 50), random.randint(10, 20), BLUE, game_state),
+        Phoenix(0, HEIGHT // 2 - 150, random.randint(25, 50), random.randint(15, 25), BLUE, game_state),
+
+    ]
+    game_state["enemy_units"] = [
+        Splash(0, HEIGHT // 2 + 50, random.randint(50, 100), random.randint(10, 20), RED, game_state) 
+        for _ in range(4)
+    ]
+    # print(f"Reset game - Player units: {len(game_state)}, Enemy units: {len(game_state['enemy_units'])}")  # 디버그 출력 추가
 
 def adjust_unit_positions(units, y):
     alive_units = [unit for unit in units ] # if not unit.dead
