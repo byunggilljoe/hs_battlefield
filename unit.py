@@ -193,7 +193,7 @@ class Unit:
         return self.fade_alpha <= 0
 
     def update(self):
-
+        print("Fading!", self.name, self.fading, self.ready_to_fade)
         if self.fading and self.ready_to_fade:
             self.fade_alpha = max(0, self.fade_alpha - self.fade_speed)  # 5에서 2.5로 변경
             if self.fade_alpha == 0:

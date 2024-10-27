@@ -28,7 +28,7 @@ class BattleScene(Scene):
         self.scene_manager = scene_manager
         self.previous_shop_scene = previous_shop_scene
         self.game_state["player_units"] = player_units
-        
+
         # 전투 시작 시 유닛 정보 저장
         self.initial_units = []
         for unit in self.game_state["player_units"]:
@@ -46,7 +46,7 @@ class BattleScene(Scene):
         
     def initialize_enemy_units(self):
         # 적 유닛 랜덤 생성 (4개)
-        possible_units = [Tank, Healer, Phoenix, Venom, Bomber, Splash]
+        possible_units = [Tank] #[Bomber] #[Tank, Healer, Phoenix, Venom, Bomber, Splash]
         enemy_positions = [(700, ENEMY_Y), (600, ENEMY_Y), 
                          (500, ENEMY_Y), (400, ENEMY_Y)]
         
@@ -75,11 +75,6 @@ class BattleScene(Scene):
         if not self.game_state["game_over"]:
             if self.game_state["initial_adjustment"]:
                 handle_initial_adjustment(self.game_state["player_units"], self.game_state["enemy_units"])
-                print("BBB", "game_over:", self.game_state["game_over"],
-                        "initial_adjustment:", self.game_state["initial_adjustment"],
-                        "waiting_for_fade:", self.game_state["waiting_for_fade"],
-                        "adjusting_positions:", self.game_state["adjusting_positions"],
-                            "attacking_unit:", self.game_state["attacking_unit"])
             elif self.game_state["waiting_for_fade"]:
                 handle_fading(self.game_state["player_units"], self.game_state["enemy_units"])
             elif self.game_state["adjusting_positions"]:
