@@ -43,6 +43,13 @@ class ShopScene(Scene):
         self.selected_unit_buttons = []
         self.update_selected_unit_buttons()
 
+        # 드래그 앤 드롭 관련 변수 추가
+        self.dragging = False
+        self.drag_unit_index = None
+        self.drag_start_pos = None
+        self.drag_current_pos = None
+        self.mouse_moved = False  # 마우스 이동 여부를 추적하는 변수 추가
+
     def update(self):
         pass
     
@@ -81,84 +88,148 @@ class ShopScene(Scene):
             screen.blit(cost_text, (rect.x + rect.width - 70, rect.y + 5))
             screen.blit(stats_text, (rect.x + 10, rect.y + 30))
         
-        # 선택된 유닛 표시 (판매 가능함을 나타내는 힌트 추가)
-        selected_text = self.font.render("Selected Units (click to sell):", True, (0, 0, 0))
+        # 선택된 유닛 표시
+        selected_text = self.font.render("Selected Units (drag to reorder):", True, (0, 0, 0))
         screen.blit(selected_text, (WIDTH - 300, 150))
         
-        small_font = pygame.font.Font(None, 24)  # 작은 폰트 추가
+        small_font = pygame.font.Font(None, 24)
         
+        # 드래그 중인 유닛이 아닌 경우에만 마우스 오버 효과 표시
         for i, unit in enumerate(self.selected_units):
-            y_pos = 190 + i * 60  # 간격 늘림
-            sell_price = int(unit["cost"] * 0.8)
-            
-            # 유닛 정보 렌더링
-            unit_name = self.font.render(f"- {unit['name']}", True, (0, 0, 0))
-            unit_price = small_font.render(f"Sell: {sell_price}G", True, (100, 100, 100))
-            unit_stats = small_font.render(f"HP: {unit['health']} | ATK: {unit['attack']}", 
-                                         True, (50, 50, 50))
-            
-            # 버튼 영역 업데이트 (더 큰 영역으로)
+            if self.dragging and i == self.drag_unit_index:
+                continue
+                
+            y_pos = 190 + i * 60
             button_rect = pygame.Rect(WIDTH - 280, y_pos, 250, 50)
-            self.selected_unit_buttons[i]["rect"] = button_rect
             
-            # 마우스가 유닛 위에 있을 때 하이라이트 효과
-            if button_rect.collidepoint(pygame.mouse.get_pos()):
+            # 마우스 오버 효과 (드래그 중이 아닐 때만)
+            if not self.dragging and button_rect.collidepoint(pygame.mouse.get_pos()):
                 pygame.draw.rect(screen, (240, 240, 240), button_rect)
-                pygame.draw.rect(screen, (200, 200, 200), button_rect, 2)  # 테두리
+                sell_price = int(unit["cost"] * 0.8)
+                hint_text = self.font.render(f"Click to sell for {sell_price}G", True, (100, 100, 100))
+                screen.blit(hint_text, (button_rect.right + 10, button_rect.centery - 10))
             
-            # 텍스트 그리기
-            screen.blit(unit_name, (WIDTH - 280, y_pos))
-            screen.blit(unit_price, (WIDTH - 280, y_pos + 25))
-            screen.blit(unit_stats, (WIDTH - 180, y_pos + 25))
+            self.draw_unit_slot(screen, unit, y_pos, small_font)
         
+        # 드래그 중인 유닛 표시
+        if self.dragging and self.drag_unit_index is not None:
+            mouse_pos = pygame.mouse.get_pos()
+            drag_y = mouse_pos[1] - 25
+            self.draw_unit_slot(screen, self.selected_units[self.drag_unit_index], 
+                              drag_y, small_font, True)
+
         # 시작 버튼
         pygame.draw.rect(screen, (0, 200, 0), self.start_button)
         start_text = self.font.render("Start Battle", True, (255, 255, 255))
         text_rect = start_text.get_rect(center=self.start_button.center)
         screen.blit(start_text, text_rect)
 
+    def draw_unit_slot(self, screen, unit, y_pos, small_font, is_dragging=False):
+        # 유닛 슬롯 그리기 함수
+        sell_price = int(unit["cost"] * 0.8)
+        
+        # 배경 rect
+        button_rect = pygame.Rect(WIDTH - 280, y_pos, 250, 50)
+        if is_dragging:
+            pygame.draw.rect(screen, (230, 230, 250), button_rect)  # 드래그 중일 때 다른 색상
+        elif button_rect.collidepoint(pygame.mouse.get_pos()):
+            pygame.draw.rect(screen, (240, 240, 240), button_rect)
+        pygame.draw.rect(screen, (200, 200, 200), button_rect, 2)
+        
+        # 텍스트 정보
+        unit_name = self.font.render(f"- {unit['name']}", True, (0, 0, 0))
+        unit_price = small_font.render(f"Sell: {sell_price}G", True, (100, 100, 100))
+        unit_stats = small_font.render(f"HP: {unit['health']} | ATK: {unit['attack']}", 
+                                     True, (50, 50, 50))
+        
+        screen.blit(unit_name, (WIDTH - 280, y_pos))
+        screen.blit(unit_price, (WIDTH - 280, y_pos + 25))
+        screen.blit(unit_stats, (WIDTH - 180, y_pos + 25))
+
     def handle_event(self, event):
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            # 유닛 구매 버튼 클릭 처리
-            for button in self.unit_buttons:
-                if button["rect"].collidepoint(event.pos):
-                    unit = button["unit"]
-                    if self.gold >= unit["cost"] and len(self.selected_units) < 4:
-                        self.gold -= unit["cost"]
-                        self.selected_units.append(unit)
-                        self.update_selected_unit_buttons()
             
-            # 선택된 유닛 판매 처리
-            for i, button in enumerate(self.selected_unit_buttons):
-                if button["rect"].collidepoint(event.pos):
-                    sold_unit = self.selected_units.pop(i)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # 좌클릭
+                # 선택된 유닛 영역 확인
+                mouse_pos = event.pos
+                for i, button in enumerate(self.selected_unit_buttons):
+                    if button["rect"].collidepoint(mouse_pos):
+                        self.dragging = True
+                        self.drag_unit_index = i
+                        self.drag_start_pos = mouse_pos
+                        self.mouse_moved = False  # 마우스 이동 초기화
+                        return
+                
+                # 구매 버튼 처리
+                for button in self.unit_buttons:
+                    if button["rect"].collidepoint(event.pos):
+                        unit = button["unit"]
+                        if self.gold >= unit["cost"] and len(self.selected_units) < 4:
+                            self.gold -= unit["cost"]
+                            self.selected_units.append(unit)
+                            self.update_selected_unit_buttons()
+                
+                # 전투 시작 버튼 처리
+                if self.start_button.collidepoint(event.pos) and self.selected_units:
+                    reset_game_state(game_state)
+                    player_units = []
+                    
+                    # 선택된 유닛들로 플레이어 유닛 초기화 (위치 조정)
+                    player_positions = [(100, PLAYER_Y), (200, PLAYER_Y), 
+                                      (300, PLAYER_Y), (400, PLAYER_Y)]
+                    
+                    for i, unit in enumerate(self.selected_units):
+                        player_unit = unit["type"](
+                            x=player_positions[i][0],
+                            y=player_positions[i][1],
+                            health=unit["health"],
+                            attack=unit["attack"],
+                            color=BLUE,
+                            game_state=game_state
+                        )
+                        player_units.append(player_unit)
+                    battle_scene = BattleScene(self.scene_manager, self, player_units)
+
+                    self.scene_manager.set_scene(battle_scene)
+            
+        elif event.type == pygame.MOUSEMOTION:
+            if self.dragging:
+                self.mouse_moved = True  # 마우스가 움직였음을 표시
+                self.drag_current_pos = event.pos
+                
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1 and self.dragging:  # 드래그 종료
+                if self.mouse_moved:  # 드래그 했을 경우
+                    drop_pos = event.pos
+                    new_index = self.get_drop_index(drop_pos)
+                    
+                    if new_index is not None and new_index != self.drag_unit_index:
+                        # 유닛 순서 변경
+                        unit = self.selected_units.pop(self.drag_unit_index)
+                        self.selected_units.insert(new_index, unit)
+                        self.update_selected_unit_buttons()
+                else:  # 클릭만 했을 경우 (판매)
+                    sold_unit = self.selected_units[self.drag_unit_index]
                     sell_price = int(sold_unit["cost"] * 0.8)  # 구매가의 80%로 판매
                     self.gold += sell_price
+                    self.selected_units.pop(self.drag_unit_index)
                     self.update_selected_unit_buttons()
-                    break
-            
-            # 전투 시작 버튼 클릭 처리
-            if self.start_button.collidepoint(event.pos) and self.selected_units:
-                reset_game_state(game_state)
-                player_units = []
                 
-                # 선택된 유닛들로 플레이어 유닛 초기화 (위치 조정)
-                player_positions = [(100, PLAYER_Y), (200, PLAYER_Y), 
-                                  (300, PLAYER_Y), (400, PLAYER_Y)]
-                
-                for i, unit in enumerate(self.selected_units):
-                    player_unit = unit["type"](
-                        x=player_positions[i][0],
-                        y=player_positions[i][1],
-                        health=unit["health"],
-                        attack=unit["attack"],
-                        color=BLUE,
-                        game_state=game_state
-                    )
-                    player_units.append(player_unit)
-                battle_scene = BattleScene(self.scene_manager, self, player_units)
+                # 드래그 상태 초기화
+                self.dragging = False
+                self.drag_unit_index = None
+                self.drag_start_pos = None
+                self.drag_current_pos = None
+                self.mouse_moved = False
 
-                self.scene_manager.set_scene(battle_scene)
+    def get_drop_index(self, pos):
+        # 드롭 위치에 해당하는 인덱스 계산
+        if WIDTH - 280 <= pos[0] <= WIDTH - 30:  # x 좌표가 유닛 목록 영역 안에 있는지 확인
+            relative_y = pos[1] - 190  # 첫 번째 슬롯 위치 기준
+            if relative_y >= 0:
+                new_index = relative_y // 60  # 슬롯 높이로 나누어 인덱스 계산
+                return min(new_index, len(self.selected_units) - 1)
+        return None
