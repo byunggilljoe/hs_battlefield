@@ -51,10 +51,10 @@ def handle_initial_adjustment(player_units, enemy_units):
     player_adjusted = adjust_unit_positions(player_units, PLAYER_Y)
     enemy_adjusted = adjust_unit_positions(enemy_units, ENEMY_Y)
     game_state["all_units_adjusted"] = player_adjusted and enemy_adjusted
-    
     if game_state["all_units_adjusted"]:
         game_state["initial_adjustment"] = False
         game_state["adjusting_positions"] = False
+    print("---handle_initial_adjustment:", player_adjusted, enemy_adjusted, game_state["all_units_adjusted"], game_state["initial_adjustment"], game_state["adjusting_positions"])
 
 def handle_fading(player_units, enemy_units):
     fading_units = [unit for unit in player_units + enemy_units if unit.is_fading()]
@@ -68,7 +68,7 @@ def handle_position_adjustment(player_units, enemy_units):
     player_adjusted = adjust_unit_positions(player_units, PLAYER_Y)
     enemy_adjusted = adjust_unit_positions(enemy_units, ENEMY_Y)
     game_state["all_units_adjusted"] = player_adjusted and enemy_adjusted
-    
+    print("---handle_position_adjustment:", player_adjusted, enemy_adjusted)
     if game_state["all_units_adjusted"]:
         game_state["adjusting_positions"] = False
         game_state["turn"] += 1

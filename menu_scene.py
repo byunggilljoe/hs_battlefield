@@ -25,5 +25,5 @@ class MenuScene(Scene):
             exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if self.start_button_rect.collidepoint(event.pos):
-                from battle_scene import BattleScene
-                self.scene_manager.set_scene(BattleScene())
+                from shop_scene import ShopScene
+                self.scene_manager.set_scene(ShopScene(self.scene_manager))
