@@ -35,17 +35,24 @@ class Unit:
         self.ready_to_fade = False  # 새로운 속성 추가
         self.opacity = 255  # 새로운 속성 추가
         self.game_state = game_state
+        self.taunt = False  # 도발 상태
+        self.taunt_particles = []  # 도발 시각 효과를 위한 파티클
+        self.battle_cry = False  # 전장의 함성 특성 추가
 
     def draw(self, screen):
-        if self.fading and self.ready_to_fade:
-            faded_color = self.color + (self.fade_alpha,)
-            s = pygame.Surface((50, 100), pygame.SRCALPHA)
-            s.fill(faded_color)
-        else:
-            s = pygame.Surface((50, 100), pygame.SRCALPHA)
-            s.fill(self.color + (255,))  # Always use full opacity for non-fading state
+        # 도발 효과 그리기 (taunt 속성이 있는 유닛만)
+        if hasattr(self, 'taunt') and self.taunt:
+            taunt_thickness = 15
+            taunt_surface = pygame.Surface((50 + taunt_thickness, 100 + taunt_thickness), pygame.SRCALPHA)
+            pygame.draw.rect(taunt_surface, (128, 128, 128, self.fade_alpha if self.fading and self.ready_to_fade else 255), 
+                           (0, 0, 50 + taunt_thickness, 100 + taunt_thickness))
+            screen.blit(taunt_surface, (self.x - taunt_thickness//2, self.y - taunt_thickness//2))
         
-        screen.blit(s, (self.x, self.y))
+        # 기본 유닛 그리기
+        unit_surface = pygame.Surface((50, 100), pygame.SRCALPHA)
+        pygame.draw.rect(unit_surface, (*self.color, self.fade_alpha if self.fading and self.ready_to_fade else 255), 
+                        (0, 0, 50, 100))
+        screen.blit(unit_surface, (self.x, self.y))
 
         font = pygame.font.Font(None, 24)
         
@@ -218,6 +225,7 @@ class Unit:
         return "in_progress"
     
     def on_spawn(self, player_units, enemy_units):
+        # 기본 구현은 아무것도 하지 않음
         pass
     
     def on_start_move(self):

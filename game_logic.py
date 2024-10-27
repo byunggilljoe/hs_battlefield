@@ -7,19 +7,20 @@ from units.splash import Splash
 from units.healer import Healer
 from units.phoenix import Phoenix
 from units.bomber import Bomber  # 파일 상단에 추가
+from units.tank import Tank  # 파일 상단에 추가
+from units.barracks import Barracks  # 상단에 추가
 from game_state import game_state
 
 def reset_game():
     game_state["player_units"] = [
-        Bomber(0, HEIGHT // 2 - 150, random.randint(5, 10), random.randint(15, 20), BLUE, game_state),  # Bomber 추가,
         Healer(0, HEIGHT // 2 - 150, random.randint(10, 50), random.randint(10, 20), BLUE, game_state),
-        Phoenix(0, HEIGHT // 2 - 150, random.randint(25, 50), random.randint(15, 25), BLUE, game_state),
-
+        Tank(0, HEIGHT // 2 - 150, random.randint(80, 120), random.randint(8, 15), BLUE, game_state),  # 체력이 높고 공격력이 낮은 Tank 추가
+        Phoenix(0, HEIGHT // 2 - 150, random.randint(25, 50), random.randint(15, 25), BLUE, game_state)
     ]
     game_state["enemy_units"] = [
-        Splash(0, HEIGHT // 2 + 50, random.randint(50, 100), random.randint(10, 20), RED, game_state) 
+        Splash(0, HEIGHT // 2 + 50, random.randint(50, 100), random.randint(10, 10), RED, game_state) 
         for _ in range(4)
-    ]
+    ] + [Barracks(0, HEIGHT // 2 + 50, random.randint(70, 100), random.randint(8, 15), RED, game_state)]
     # print(f"Reset game - Player units: {len(game_state)}, Enemy units: {len(game_state['enemy_units'])}")  # 디버그 출력 추가
 
 def adjust_unit_positions(units, y):
@@ -97,7 +98,15 @@ def select_units_for_attack(player_units, enemy_units):
             
             # 공격 유닛 선택
             attacking_unit = alive_attacking_units[game_state[attack_index] % len(alive_attacking_units)]
-            target_unit = random.choice(alive_target_units)  # 랜덤으로 타겟 유닛 선택
+            
+            # 도발 상태인 유닛이 있는지 확인
+            taunting_units = [unit for unit in alive_target_units if hasattr(unit, 'taunt') and unit.taunt]
+            
+            # 도발 상태인 유닛이 있으면 그 중에서 선택, 없으면 일반적인 랜덤 선택
+            if taunting_units:
+                target_unit = random.choice(taunting_units)
+            else:
+                target_unit = random.choice(alive_target_units)
             
             attacking_unit.moving = True
             attacking_unit.target_unit = target_unit

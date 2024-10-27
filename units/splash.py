@@ -8,7 +8,7 @@ class Splash(Unit):
         super().__init__(x, y, health, attack, color, game_state)
         self.name="Splash"
         
-    def on_attack(self, target, player_units, enemy_units, game_state=None):
+    def on_attack(self, target, player_units, enemy_units):
         # 타겟이 적군인지 아군인지에 따라 공격할 유닛 리스트 선택
         target_units = enemy_units if target in enemy_units else player_units
         
@@ -17,11 +17,12 @@ class Splash(Unit):
         
         # 공격할 유닛들의 인덱스 계산 (타겟 및 양옆 유닛)
         attack_indices = [
-            i for i in [target_index - 1, target_index, target_index + 1]
+            i for i in [target_index - 1, target_index + 1]
             if 0 <= i < len(target_units)
         ]
         
         # 해당하는 모든 유닛 공격
+        print(f"Splash attack_indices: {attack_indices}")
         for idx in attack_indices:
             unit = target_units[idx]
             unit.update_health(unit.health - self.attack)
