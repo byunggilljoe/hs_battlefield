@@ -102,13 +102,13 @@ class Unit:
         for particle in self.particles:
             particle.draw(screen)
 
-    def update_health(self, new_health):
+    def update_health(self, new_health, ready_to_fade=False):
         self.health = new_health
         self.health_animation = 10
         self.health_animation_time = 0
         if self.health <= 0:
             self.health = 0
-            self.start_fading()  # dead = True 대신 페이딩 시작
+            self.start_fading(ready_to_fade)  # dead = True 대신 페이딩 시작
             self.should_create_particles = True
 
     def move_to_target(self):
@@ -185,9 +185,9 @@ class Unit:
         self.start_attack_x = None
         self.start_attack_y = None
 
-    def start_fading(self):
+    def start_fading(self, ready_to_fade=False):
         self.fading = True
-        self.ready_to_fade = False  # 아직 페이딩을 시작하지 않음
+        self.ready_to_fade = ready_to_fade  # 아직 페이딩을 시작하지 않음
 
     def is_completely_faded(self):
         return self.fade_alpha <= 0

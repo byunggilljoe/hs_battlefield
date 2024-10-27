@@ -46,7 +46,7 @@ class BattleScene(Scene):
         
     def initialize_enemy_units(self):
         # 적 유닛 랜덤 생성 (4개)
-        possible_units = [Tank] #[Bomber] #[Tank, Healer, Phoenix, Venom, Bomber, Splash]
+        possible_units = [Bomber] #[Tank, Healer, Phoenix, Venom, Bomber, Splash]
         enemy_positions = [(700, ENEMY_Y), (600, ENEMY_Y), 
                          (500, ENEMY_Y), (400, ENEMY_Y)]
         
@@ -55,7 +55,7 @@ class BattleScene(Scene):
             unit = unit_class(
                 x=pos[0],
                 y=pos[1],
-                health=random.randint(40, 100),
+                health=random.randint(5, 5),
                 attack=random.randint(10, 25),
                 color=RED,
                 game_state=self.game_state

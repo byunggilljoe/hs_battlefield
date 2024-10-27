@@ -16,7 +16,7 @@ class ShopScene(Scene):
         self.scene_manager = scene_manager
         self.font = pygame.font.Font(None, 36)
         self.title_font = pygame.font.Font(None, 48)
-        self.gold = previous_gold if previous_gold is not None else 1000
+        self.gold = previous_gold if previous_gold is not None else 5000
         
         # 구매 가능한 유닛들과 가격
         self.available_units = [
@@ -24,7 +24,7 @@ class ShopScene(Scene):
             {"type": Healer, "name": "Healer", "cost": 250, "health": 50, "attack": 15},
             {"type": Phoenix, "name": "Phoenix", "cost": 400, "health": 60, "attack": 20},
             {"type": Venom, "name": "Venom", "cost": 350, "health": 40, "attack": 25},
-            {"type": Bomber, "name": "Bomber", "cost": 300, "health": 45, "attack": 15}
+            {"type": Bomber, "name": "Bomber", "cost": 300, "health": 5, "attack": 15}
         ]
         
         # 이전 유닛들이 있으면 복원

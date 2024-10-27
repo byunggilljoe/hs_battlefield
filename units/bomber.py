@@ -8,7 +8,8 @@ class Bomber(Unit):
         super().__init__(x, y, health, attack, color, game_state)
         self.name = "Bomber"
         self.exploded = False
-        
+        self.bomb_damage = 10
+
     def on_death(self):
         if not self.exploded:
             self.exploded = True
@@ -21,7 +22,7 @@ class Bomber(Unit):
             # 모든 적 유닛의 체력을 절반으로 하고 해당 위치에 폭발 효과 생성
             for unit in enemy_units:
                 if not unit.dead:
-                    unit.update_health(unit.health // 2)
+                    unit.update_health(unit.health - self.bomb_damage, ready_to_fade=True)
                     self.create_explosion_particles(unit.x, unit.y)
         
         super().on_death()
