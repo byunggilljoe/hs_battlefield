@@ -31,50 +31,61 @@ class Unit:
         self.acceleration = 0.5
         self.should_fade = False
         self.fade_alpha = 50
-        self.fade_speed = 1  # 기존값을 더 작게 변경 (예: 5 -> 3)
+        self.fade_speed = 2.0  # 1에서 0.5로 변경하여 페이딩 속도를 절반으로 줄임
         self.ready_to_fade = False  # 새로운 속성 추가
-        self.opacity = 255  # 새로운 속성 추가
         self.game_state = game_state
         self.taunt = False  # 도발 상태
         self.taunt_particles = []  # 도발 시각 효과를 위한 파티클
         self.battle_cry = False  # 전장의 함성 특성 추가
+        self.shake_offset = 0  # 좌우 흔들림을 위한 오프셋
+        self.shake_speed = 8   # 흔들림 속도
+        self.shake_amount = 2  # 최대 흔들림 범위
 
     def draw(self, screen):
+        # 페이딩 중일 때 흔들림 효과 계산
+        current_x = self.x
+        if self.fading and self.ready_to_fade:
+            self.shake_offset = math.sin(pygame.time.get_ticks() * 0.01 * self.shake_speed) * self.shake_amount
+            current_x += self.shake_offset
+
         # 도발 효과 그리기 (taunt 속성이 있는 유닛만)
         if hasattr(self, 'taunt') and self.taunt:
             taunt_thickness = 15
             taunt_surface = pygame.Surface((50 + taunt_thickness, 100 + taunt_thickness), pygame.SRCALPHA)
             pygame.draw.rect(taunt_surface, (128, 128, 128, self.fade_alpha if self.fading and self.ready_to_fade else 255), 
                            (0, 0, 50 + taunt_thickness, 100 + taunt_thickness))
-            screen.blit(taunt_surface, (self.x - taunt_thickness//2, self.y - taunt_thickness//2))
+            screen.blit(taunt_surface, (current_x - taunt_thickness//2, self.y - taunt_thickness//2))
         
         # 기본 유닛 그리기
         unit_surface = pygame.Surface((50, 100), pygame.SRCALPHA)
         pygame.draw.rect(unit_surface, (*self.color, self.fade_alpha if self.fading and self.ready_to_fade else 255), 
                         (0, 0, 50, 100))
-        screen.blit(unit_surface, (self.x, self.y))
+        screen.blit(unit_surface, (current_x, self.y))
 
+        # 텍스트 그리기도 흔들림 효과 적용
         font = pygame.font.Font(None, 24)
         
         # 유닛 이름 그리기
         name_font = pygame.font.Font(None, 20)
         name_text = name_font.render(self.name, True, (255, 255, 255))
         name_text.set_alpha(self.fade_alpha if self.fading and self.ready_to_fade else 255)
-        name_rect = name_text.get_rect(center=(self.x + 25, self.y + 50))
+        name_rect = name_text.get_rect(center=(current_x + 25, self.y + 50))
         screen.blit(name_text, name_rect)
 
+        # 체력 텍스트
         health_size = 24 + self.health_animation
         health_font = pygame.font.Font(None, int(health_size))
         health_text = health_font.render(str(self.health), True, (0, 0, 0))
         health_text.set_alpha(self.fade_alpha if self.fading and self.ready_to_fade else 255)
         health_rect = health_text.get_rect()
-        health_rect.bottomright = (self.x + 50, self.y + 100)
+        health_rect.bottomright = (current_x + 50, self.y + 100)
         screen.blit(health_text, health_rect)
 
+        # 공격력 텍스트
         attack_text = font.render(str(self.attack), True, (255, 255, 255))
         attack_text.set_alpha(self.fade_alpha if self.fading and self.ready_to_fade else 255)
         attack_rect = attack_text.get_rect()
-        attack_rect.bottomleft = (self.x, self.y + 100)
+        attack_rect.bottomleft = (current_x, self.y + 100)
         screen.blit(attack_text, attack_rect)
 
         if self.health_animation > 0:
@@ -83,10 +94,10 @@ class Unit:
                 self.health_animation = max(0, self.health_animation - 1)
                 self.health_animation_time = 0
 
-        if self.fading and self.ready_to_fade:
-            self.fade_alpha = max(0, self.fade_alpha - 5)
-            if self.fade_alpha == 0:
-                self.dead = True
+        # if self.fading and self.ready_to_fade:
+        #     self.fade_alpha = max(0, self.fade_alpha - 2.5)  # 5에서 2.5로 변경
+        #     if self.fade_alpha == 0:
+        #         self.dead = True
 
         for particle in self.particles:
             particle.draw(screen)
@@ -182,9 +193,10 @@ class Unit:
         return self.fade_alpha <= 0
 
     def update(self):
-        if self.fading:
-            self.opacity = max(0, self.opacity - self.fade_speed)  # fade_speed 값이 작을수록 천천히 사라짐
-            if self.opacity <= 0:
+
+        if self.fading and self.ready_to_fade:
+            self.fade_alpha = max(0, self.fade_alpha - self.fade_speed)  # 5에서 2.5로 변경
+            if self.fade_alpha == 0:
                 self.dead = True
 
     def prepare_to_fade(self):

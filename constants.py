@@ -14,3 +14,6 @@ BLUE = (0, 0, 255)
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Turn-Based Battle Game")
+
+PLAYER_Y = HEIGHT // 2 + 50
+ENEMY_Y = HEIGHT // 2 - 150

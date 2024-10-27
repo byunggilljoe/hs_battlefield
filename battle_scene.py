@@ -65,7 +65,9 @@ class BattleScene(Scene):
         # Display game over message
         if self.game_state["game_over"]:
             font = pygame.font.Font(None, 74)
-            if not self.game_state["player_units"]:
+            if not self.game_state["player_units"] and not self.game_state["enemy_units"]:
+                text = font.render("Draw!", True, (128, 128, 128))  # 회색으로 무승부 표시
+            elif not self.game_state["player_units"]:
                 text = font.render("Enemy Win!", True, (255, 0, 0))
             else:
                 text = font.render("Player Win!", True, (0, 0, 255))

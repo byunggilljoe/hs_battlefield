@@ -1,6 +1,6 @@
 import math
 import random
-from constants import WIDTH, HEIGHT, BLUE, RED
+from constants import WIDTH, HEIGHT, BLUE, RED, PLAYER_Y, ENEMY_Y
 from unit import Unit
 from units.venom import Venom
 from units.splash import Splash
@@ -12,15 +12,16 @@ from units.barracks import Barracks  # 상단에 추가
 from game_state import game_state
 
 def reset_game():
+
     game_state["player_units"] = [
-        Healer(0, HEIGHT // 2 - 150, random.randint(10, 50), random.randint(10, 20), BLUE, game_state),
-        Tank(0, HEIGHT // 2 - 150, random.randint(80, 120), random.randint(8, 15), BLUE, game_state),  # 체력이 높고 공격력이 낮은 Tank 추가
-        Phoenix(0, HEIGHT // 2 - 150, random.randint(25, 50), random.randint(15, 25), BLUE, game_state)
+        Healer(0, PLAYER_Y, random.randint(10, 50), random.randint(10, 20), BLUE, game_state),
+        Tank(0, PLAYER_Y, random.randint(80, 120), random.randint(8, 15), BLUE, game_state),  # 체력이 높고 공격력이 낮은 Tank 추가
+        Phoenix(0, PLAYER_Y, random.randint(25, 50), random.randint(15, 25), BLUE, game_state)
     ]
     game_state["enemy_units"] = [
-        Splash(0, HEIGHT // 2 + 50, random.randint(50, 100), random.randint(10, 10), RED, game_state) 
+        Splash(0, ENEMY_Y, random.randint(50, 100), random.randint(10, 10), RED, game_state) 
         for _ in range(4)
-    ] + [Barracks(0, HEIGHT // 2 + 50, random.randint(70, 100), random.randint(8, 15), RED, game_state)]
+    ] + [Barracks(0, ENEMY_Y, random.randint(70, 100), random.randint(8, 15), RED, game_state)]
     # print(f"Reset game - Player units: {len(game_state)}, Enemy units: {len(game_state['enemy_units'])}")  # 디버그 출력 추가
 
 def adjust_unit_positions(units, y):
@@ -47,8 +48,8 @@ def remove_dead_units(player_units, enemy_units):
     return [unit for unit in player_units if not unit.dead], [unit for unit in enemy_units if not unit.dead]
 
 def handle_initial_adjustment(player_units, enemy_units):
-    player_adjusted = adjust_unit_positions(player_units, HEIGHT // 2 - 150)
-    enemy_adjusted = adjust_unit_positions(enemy_units, HEIGHT // 2 + 50)
+    player_adjusted = adjust_unit_positions(player_units, PLAYER_Y)
+    enemy_adjusted = adjust_unit_positions(enemy_units, ENEMY_Y)
     game_state["all_units_adjusted"] = player_adjusted and enemy_adjusted
     
     if game_state["all_units_adjusted"]:
@@ -64,8 +65,8 @@ def handle_fading(player_units, enemy_units):
     return player_units, enemy_units
 
 def handle_position_adjustment(player_units, enemy_units):
-    player_adjusted = adjust_unit_positions(player_units, HEIGHT // 2 - 150)
-    enemy_adjusted = adjust_unit_positions(enemy_units, HEIGHT // 2 + 50)
+    player_adjusted = adjust_unit_positions(player_units, PLAYER_Y)
+    enemy_adjusted = adjust_unit_positions(enemy_units, ENEMY_Y)
     game_state["all_units_adjusted"] = player_adjusted and enemy_adjusted
     
     if game_state["all_units_adjusted"]:
@@ -146,9 +147,15 @@ def update_units(player_units, enemy_units):
     
 def check_game_over(player_units, enemy_units):
     if not game_state["game_over"]:
-        if not player_units or not enemy_units:
+        alive_player_units = [unit for unit in player_units if not unit.dead]
+        alive_enemy_units = [unit for unit in enemy_units if not unit.dead]
+        
+        if not alive_player_units and not alive_enemy_units:
             game_state["game_over"] = True
-            if not player_units:
-                print("적팀 승리!")
-            else:
-                print("플레이어팀 승리!")
+            print("무승부!")
+        elif not alive_player_units:
+            game_state["game_over"] = True
+            print("적팀 승리!")
+        elif not alive_enemy_units:
+            game_state["game_over"] = True
+            print("플레이어팀 승리!")

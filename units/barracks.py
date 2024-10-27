@@ -8,17 +8,6 @@ class Barracks(Unit):
         self.name = "Barracks"
         self.taunt = True
         
-    def draw(self, screen):
-        # 도발 상태를 나타내는 회색 rect를 먼저 그림
-        taunt_thickness = 15
-        taunt_surface = pygame.Surface((50 + taunt_thickness, 100 + taunt_thickness), pygame.SRCALPHA)
-        pygame.draw.rect(taunt_surface, (128, 128, 128, self.fade_alpha if self.fading and self.ready_to_fade else 255), 
-                       (0, 0, 50 + taunt_thickness, 100 + taunt_thickness))
-        screen.blit(taunt_surface, (self.x - taunt_thickness//2, self.y - taunt_thickness//2))
-        
-        # 기본 유닛 그리기
-        super().draw(screen)
-
     def on_death(self):
             
         # 자신이 속한 팀을 확인
