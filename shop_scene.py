@@ -37,7 +37,7 @@ class ShopScene(Scene):
         self.unit_buttons = []
         button_y = 150  # 모든 버튼의 y 위치
         total_width = len(self.available_units) * 100  # 간격 수정
-        start_x = (WIDTH - total_width) / 2  # 첫 번째 버튼의 x 위치
+        start_x = (WIDTH - total_width) / 2  # 첫 번째 버튼의 x 위��
         
         for i, unit in enumerate(self.available_units):
             button_rect = pygame.Rect(start_x + i * 100, button_y, 50, 100)  # 50x100으로 수정
@@ -219,7 +219,7 @@ class ShopScene(Scene):
                 for button in self.unit_buttons:
                     if button["rect"].collidepoint(event.pos):
                         unit = button["unit"]
-                        if self.gold >= unit["cost"] and len(self.selected_units) < 4:
+                        if self.gold >= unit["cost"] and len(self.selected_units) < 7:  # 4를 7로 변경
                             self.gold -= unit["cost"]
                             self.selected_units.append(unit)
                             # 새로운 미리보기 유닛 생성
@@ -233,8 +233,12 @@ class ShopScene(Scene):
                     player_units = []
                     
                     # 선택된 유닛들로 플레이어 유닛 초기화 (위치 조정)
-                    player_positions = [(100, PLAYER_Y), (200, PLAYER_Y), 
-                                      (300, PLAYER_Y), (400, PLAYER_Y)]
+                    player_positions = [
+                        (100, PLAYER_Y), (200, PLAYER_Y), 
+                        (300, PLAYER_Y), (400, PLAYER_Y),
+                        (500, PLAYER_Y), (600, PLAYER_Y),
+                        (700, PLAYER_Y)
+                    ]
                     
                     for i, unit in enumerate(self.selected_units):
                         player_unit = unit["type"](
@@ -300,4 +304,7 @@ class ShopScene(Scene):
                 self.drag_current_pos = None
                 self.sell_zone_active = False
                 self.update_selected_unit_buttons()
+
+
+
 
