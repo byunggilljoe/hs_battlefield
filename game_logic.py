@@ -54,7 +54,7 @@ def handle_initial_adjustment(player_units, enemy_units):
     if game_state["all_units_adjusted"]:
         game_state["initial_adjustment"] = False
         game_state["adjusting_positions"] = False
-    print("---handle_initial_adjustment:", player_adjusted, enemy_adjusted, game_state["all_units_adjusted"], game_state["initial_adjustment"], game_state["adjusting_positions"])
+    # print("---handle_initial_adjustment:", player_adjusted, enemy_adjusted, game_state["all_units_adjusted"], game_state["initial_adjustment"], game_state["adjusting_positions"])
 
 def handle_fading(player_units, enemy_units):
     fading_units = [unit for unit in player_units + enemy_units if unit.is_fading()]
@@ -68,7 +68,7 @@ def handle_position_adjustment(player_units, enemy_units):
     player_adjusted = adjust_unit_positions(player_units, PLAYER_Y)
     enemy_adjusted = adjust_unit_positions(enemy_units, ENEMY_Y)
     game_state["all_units_adjusted"] = player_adjusted and enemy_adjusted
-    print("---handle_position_adjustment:", player_adjusted, enemy_adjusted)
+    # print("---handle_position_adjustment:", player_adjusted, enemy_adjusted)
     if game_state["all_units_adjusted"]:
         game_state["adjusting_positions"] = False
         game_state["turn"] += 1
@@ -127,14 +127,14 @@ def select_units_for_attack(player_units, enemy_units):
 def handle_attack(player_units, enemy_units):
     attacking_unit = game_state["attacking_unit"]
     target_unit = game_state["target_unit"]
-
-    attack_status = attacking_unit.handle_combat(target_unit, player_units, enemy_units)
     
-    if attack_status == "completed":
-        game_state["waiting_for_fade"] = True
-        game_state["attacking_unit"] = None
-        game_state["target_unit"] = None
-
+    if attacking_unit and target_unit:
+        attack_status = handle_unit_combat(attacking_unit, target_unit, player_units, enemy_units)
+        
+        if attack_status == "completed":
+            game_state["waiting_for_fade"] = True
+            game_state["attacking_unit"] = None
+            game_state["target_unit"] = None
 
 def update_units(player_units, enemy_units):
     for unit in player_units + enemy_units:
@@ -159,3 +159,39 @@ def check_game_over(player_units, enemy_units):
         elif not alive_enemy_units:
             game_state["game_over"] = True
             print("플레이어팀 승리!")
+
+def handle_unit_combat(attacking_unit, target_unit, player_units, enemy_units):
+    move_status = attacking_unit.move_to_target()
+    
+    if move_status == "attack":
+        attacking_unit.on_attack(target_unit, player_units, enemy_units)
+        attacking_unit.apply_damage(target_unit)
+        target_unit.apply_damage(attacking_unit)
+        attacking_unit.returning = True
+        
+        # Calculate collision direction and create particles
+        collision_direction = math.atan2(
+            target_unit.y - attacking_unit.original_y, 
+            target_unit.x - attacking_unit.original_x
+        )
+        attacking_unit.create_collision_particles(
+            collision_direction + random.uniform(-0.25, 0.25)
+        )
+        target_unit.create_collision_particles(
+            collision_direction + math.pi + random.uniform(-0.25, 0.25)
+        )
+        
+    elif move_status == "returned":
+        handle_death(player_units + enemy_units)
+        return "completed"
+    
+    return "in_progress"
+
+def handle_death(units):
+    for unit in units:
+        if unit.health <= 0 and not unit.ready_to_fade:
+            unit.prepare_to_fade()
+            unit.on_death()
+        if unit.should_create_particles:
+            unit.create_particles()
+            unit.should_create_particles = False

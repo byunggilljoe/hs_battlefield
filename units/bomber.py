@@ -2,7 +2,7 @@ from unit import Unit
 import random
 import math
 from particle import Particle
-
+import game_logic
 class Bomber(Unit):
     def __init__(self, x, y, health, attack, color, game_state):
         super().__init__(x, y, health, attack, color, game_state)
@@ -22,8 +22,9 @@ class Bomber(Unit):
             # 모든 적 유닛의 체력을 절반으로 하고 해당 위치에 폭발 효과 생성
             for unit in enemy_units:
                 if not unit.dead:
-                    unit.update_health(unit.health - self.bomb_damage, ready_to_fade=True)
+                    unit.update_health(unit.health - self.bomb_damage)
                     self.create_explosion_particles(unit.x, unit.y)
+            game_logic.handle_death(enemy_units)
         
         super().on_death()
     

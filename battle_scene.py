@@ -46,7 +46,7 @@ class BattleScene(Scene):
         
     def initialize_enemy_units(self):
         # 적 유닛 랜덤 생성 (4개)
-        possible_units = [Bomber] #[Tank, Healer, Phoenix, Venom, Bomber, Splash]
+        possible_units = [Tank, Healer, Phoenix, Venom, Bomber, Splash]
         enemy_positions = [(700, ENEMY_Y), (600, ENEMY_Y), 
                          (500, ENEMY_Y), (400, ENEMY_Y)]
         
@@ -55,7 +55,7 @@ class BattleScene(Scene):
             unit = unit_class(
                 x=pos[0],
                 y=pos[1],
-                health=random.randint(5, 5),
+                health=random.randint(50, 100),
                 attack=random.randint(10, 25),
                 color=RED,
                 game_state=self.game_state
@@ -66,11 +66,11 @@ class BattleScene(Scene):
         # self.game_state["initial_adjustment"] = True
 
     def update(self):
-        print("game_over:", self.game_state["game_over"],
-         "initial_adjustment:", self.game_state["initial_adjustment"],
-          "waiting_for_fade:", self.game_state["waiting_for_fade"],
-           "adjusting_positions:", self.game_state["adjusting_positions"],
-            "attacking_unit:", self.game_state["attacking_unit"])
+        # print("game_over:", self.game_state["game_over"],
+        #  "initial_adjustment:", self.game_state["initial_adjustment"],
+        #   "waiting_for_fade:", self.game_state["waiting_for_fade"],
+        #    "adjusting_positions:", self.game_state["adjusting_positions"],
+        #     "attacking_unit:", self.game_state["attacking_unit"])
             
         if not self.game_state["game_over"]:
             if self.game_state["initial_adjustment"]:
@@ -134,7 +134,7 @@ class BattleScene(Scene):
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
             if self.game_state["game_over"]:
                 from shop_scene import ShopScene
-                print("---initial_units:", self.initial_units)
+                # print("---initial_units:", self.initial_units)
                 # 저장해둔 초기 유닛 정보를 사용
                 shop_scene = ShopScene(
                     self.scene_manager,

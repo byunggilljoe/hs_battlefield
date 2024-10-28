@@ -102,13 +102,13 @@ class Unit:
         for particle in self.particles:
             particle.draw(screen)
 
-    def update_health(self, new_health, ready_to_fade=False):
+    def update_health(self, new_health):
         self.health = new_health
         self.health_animation = 10
         self.health_animation_time = 0
         if self.health <= 0:
             self.health = 0
-            self.start_fading(ready_to_fade)  # dead = True 대신 페이딩 시작
+            self.start_fading()  # dead = True 대신 페이딩 시작
             self.should_create_particles = True
 
     def move_to_target(self):
@@ -185,15 +185,15 @@ class Unit:
         self.start_attack_x = None
         self.start_attack_y = None
 
-    def start_fading(self, ready_to_fade=False):
+    def start_fading(self):
         self.fading = True
-        self.ready_to_fade = ready_to_fade  # 아직 페이딩을 시작하지 않음
+        self.ready_to_fade = False  # 아직 페이딩을 시작하지 않음
 
     def is_completely_faded(self):
         return self.fade_alpha <= 0
 
     def update(self):
-        print("Fading!", self.name, self.fading, self.ready_to_fade)
+        # print("Fading!", self.name, self.fading, self.ready_to_fade)
         if self.fading and self.ready_to_fade:
             self.fade_alpha = max(0, self.fade_alpha - self.fade_speed)  # 5에서 2.5로 변경
             if self.fade_alpha == 0:
@@ -205,37 +205,6 @@ class Unit:
     def apply_damage(self, target_unit):
         target_unit.update_health(target_unit.health - self.attack)
         
-    def handle_combat(self, target_unit, player_units, enemy_units):
-        move_status = self.move_to_target()
-        
-        if move_status == "attack":
-            self.on_attack(target_unit, player_units, enemy_units)
-            self.apply_damage(target_unit)
-            target_unit.apply_damage(self)
-            self.returning = True
-            
-            # 기본 충돌 방향에 랜덤한 변화(-0.5 ~ 0.5 라디안, 약 ±28.6도) 추가
-            collision_direction = math.atan2(target_unit.y - self.original_y, target_unit.x - self.original_x)
-            self.create_collision_particles(collision_direction + random.uniform(-0.25, 0.25))
-            target_unit.create_collision_particles(collision_direction + math.pi + random.uniform(-0.25, 0.25))
-            
-            # 여기서 추가로 player_units와 enemy_units를 활용한 
-            # 추가 전투 로직을 구현할 수 있습니다
-            
-        elif move_status == "returned":
-            for unit in player_units + enemy_units:
-                if unit.health <= 0 and not unit.ready_to_fade:
-                    unit.prepare_to_fade()
-                    unit.on_death()
-                if unit.should_create_particles:
-                    unit.create_particles()
-                    unit.should_create_particles = False
-            
-                    
-            return "completed"
-        
-        return "in_progress"
-    
     def on_spawn(self, player_units, enemy_units):
         # 기본 구현은 아무것도 하지 않음
         pass

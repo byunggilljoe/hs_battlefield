@@ -24,7 +24,7 @@ class ShopScene(Scene):
             {"type": Healer, "name": "Healer", "cost": 250, "health": 50, "attack": 15},
             {"type": Phoenix, "name": "Phoenix", "cost": 400, "health": 60, "attack": 20},
             {"type": Venom, "name": "Venom", "cost": 350, "health": 40, "attack": 25},
-            {"type": Bomber, "name": "Bomber", "cost": 300, "health": 5, "attack": 15}
+            {"type": Bomber, "name": "Bomber", "cost": 300, "health": 20, "attack": 15}
         ]
         
         # 이전 유닛들이 있으면 복원
