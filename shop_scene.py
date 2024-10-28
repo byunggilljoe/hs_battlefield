@@ -72,14 +72,24 @@ class ShopScene(Scene):
         
         # 선택된 유닛들의 미리보기 인스턴스 생성
         self.selected_preview_units = []
+        if previous_units:
+            for unit in previous_units:
+                preview_unit = unit["type"](0, 0, unit["health"], unit["attack"], BLUE, game_state)
+                self.selected_preview_units.append(preview_unit)
 
     def update(self):
         # 상점 유닛들의 파티클 업데이트
         for unit_data in self.preview_units.values():
-            for particle in unit_data.particles[:]:  # 복사본으로 순회
+            for particle in unit_data.particles[:]:
                 particle.update()
-                # if particle.should_remove():
-                #     unit_data.particles.remove(particle)
+
+        
+        # 선택된 유닛들의 파티클 업데이트
+        for preview_unit in self.selected_preview_units:
+            for particle in preview_unit.particles[:]:
+                particle.update()
+                if particle.should_remove():
+                    preview_unit.particles.remove(particle)
 
     def update_selected_unit_buttons(self):
         # 선택된 유닛들의 버튼 위치 업데이트 (가로 중앙 정렬)
@@ -172,21 +182,20 @@ class ShopScene(Scene):
             total_width = len(self.selected_units) * 100
             start_x = (WIDTH - total_width) / 2
             x_pos = start_x + index * 100
-            y_pos = HEIGHT - 250  # update_selected_unit_buttons와 동일한 y 위치
+            y_pos = HEIGHT - 250
 
-        button_rect = pygame.Rect(x_pos, y_pos, 50, 100)  # 50x100으로 수정
-        # 배경 그리기 (유닛에 가려질 것이므로 드래그 시에만 표시)
+        button_rect = pygame.Rect(x_pos, y_pos, 50, 100)
         if is_dragging:
             pygame.draw.rect(screen, (230, 230, 250), button_rect)
             pygame.draw.rect(screen, (200, 200, 200), button_rect, 2)
         
-        # 유닛 미리보기 그리기
-        preview_unit = self.preview_units[unit['name']]
+        # 선택된 유닛의 실제 미리보기 그리기
+        preview_unit = self.selected_preview_units[index]
         preview_unit.x = x_pos
         preview_unit.y = y_pos
         preview_unit.draw(screen)
         
-        # 판매 가격만 유닛 아래에 표시
+        # 판매 가격 표시
         sell_price = int(unit["cost"] * 0.8)
         price_text = small_font.render(f"{sell_price}G", True, (255, 215, 0))
         price_rect = price_text.get_rect(centerx=button_rect.centerx, top=button_rect.bottom + 5)
@@ -215,6 +224,9 @@ class ShopScene(Scene):
                         if self.gold >= unit["cost"] and len(self.selected_units) < 4:
                             self.gold -= unit["cost"]
                             self.selected_units.append(unit)
+                            # 새로운 미리보기 유닛 생성
+                            preview_unit = unit["type"](0, 0, unit["health"], unit["attack"], BLUE, game_state)
+                            self.selected_preview_units.append(preview_unit)
                             self.update_selected_unit_buttons()
                 
                 # 전투 시작 버튼 처리
@@ -253,6 +265,7 @@ class ShopScene(Scene):
                     sell_price = int(sold_unit["cost"] * 0.8)
                     self.gold += sell_price
                     self.selected_units.pop(self.drag_unit_index)
+                    self.selected_preview_units.pop(self.drag_unit_index)
                 else:  # 다른 위치에서 드롭한 경우
                     mouse_x = event.pos[0]
                     total_width = len(self.selected_units) * 100
@@ -276,9 +289,11 @@ class ShopScene(Scene):
                     if target_index != self.drag_unit_index:
                         # 유닛 재배치
                         unit = self.selected_units.pop(self.drag_unit_index)
+                        preview_unit = self.selected_preview_units.pop(self.drag_unit_index)
                         if target_index > self.drag_unit_index:
                             target_index -= 1
                         self.selected_units.insert(target_index, unit)
+                        self.selected_preview_units.insert(target_index, preview_unit)
                 
                 # 드래그 상태 초기화
                 self.dragging = False
