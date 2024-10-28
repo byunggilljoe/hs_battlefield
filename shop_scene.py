@@ -11,6 +11,7 @@ from units.tank import Tank
 from constants import PLAYER_Y
 from game_state import game_state, reset_game_state
 import math
+from units.warlord import Warlord
 
 class ShopScene(Scene):
     def __init__(self, scene_manager, previous_units=None, previous_gold=None):
@@ -35,11 +36,11 @@ class ShopScene(Scene):
         # 버튼 위치 설정 (가로로 배치)
         self.unit_buttons = []
         button_y = 150  # 모든 버튼의 y 위치
-        total_width = len(self.available_units) * 220  # 각 버튼의 너비 + 간격
+        total_width = len(self.available_units) * 100  # 간격 수정
         start_x = (WIDTH - total_width) / 2  # 첫 번째 버튼의 x 위치
         
         for i, unit in enumerate(self.available_units):
-            button_rect = pygame.Rect(start_x + i * 220, button_y, 200, 80)
+            button_rect = pygame.Rect(start_x + i * 100, button_y, 50, 100)  # 50x100으로 수정
             self.unit_buttons.append({"rect": button_rect, "unit": unit})
             
         # 시작 버튼 위치 조정
@@ -60,14 +61,35 @@ class ShopScene(Scene):
         self.sell_zone = pygame.Rect(WIDTH/2 - 75, 50, 150, 80)
         self.sell_zone_active = False
 
+        # 각 유닛 타입별 미리보기 인스턴스 생성
+        self.preview_units = {
+            "Tank": Tank(0, 0, 100, 10, BLUE, game_state),
+            "Healer": Healer(0, 0, 50, 15, BLUE, game_state),
+            "Phoenix": Phoenix(0, 0, 60, 20, BLUE, game_state),
+            "Venom": Venom(0, 0, 40, 25, BLUE, game_state),
+            "Bomber": Bomber(0, 0, 20, 15, BLUE, game_state)
+        }
+        
+        # 선택된 유닛들의 미리보기 인스턴스 생성
+        self.selected_preview_units = []
+
     def update(self):
-        pass
-    
+        # 상점 유닛들의 파티클 업데이트
+        for unit_data in self.preview_units.values():
+            for particle in unit_data.particles[:]:  # 복사본으로 순회
+                particle.update()
+                # if particle.should_remove():
+                #     unit_data.particles.remove(particle)
+
     def update_selected_unit_buttons(self):
-        # 선택된 유닛들의 버튼 위치 업데이트 (가로로 배치)
+        # 선택된 유닛들의 버튼 위치 업데이트 (가로 중앙 정렬)
         self.selected_unit_buttons = []
+        total_width = len(self.selected_units) * 100  # 전체 너비 (유닛 간격 포함)
+        start_x = (WIDTH - total_width) / 2  # 첫 번째 유닛의 x 좌표
+        y_position = HEIGHT - 250  # 화면 중앙보다 약간 아래로 조정
+
         for i, unit in enumerate(self.selected_units):
-            button_rect = pygame.Rect(50 + i * 260, HEIGHT - 200, 250, 50)
+            button_rect = pygame.Rect(start_x + i * 100, y_position, 50, 100)
             self.selected_unit_buttons.append({"rect": button_rect, "unit": unit})
 
     def draw(self, screen):
@@ -99,22 +121,21 @@ class ShopScene(Scene):
             unit = button["unit"]
             rect = button["rect"]
             
-            # 버튼 배경
-            pygame.draw.rect(screen, (200, 200, 200), rect)
+            # 버튼 배경 (유닛에 가려질 것이므로 테두리만 표시)
+            pygame.draw.rect(screen, (200, 200, 200), rect, 2)
             
-            # 유닛 정보 텍스트
-            name_text = self.font.render(f"{unit['name']}", True, (0, 0, 0))
+            # 유닛 미리보기 그리기
+            preview_unit = self.preview_units[unit['name']]
+            preview_unit.x = rect.x
+            preview_unit.y = rect.y
+            preview_unit.draw(screen)
+            
+            # 가격 정보만 유닛 아래에 표시
             cost_text = self.font.render(f"{unit['cost']}G", True, (255, 215, 0))
-            stats_text = self.font.render(f"HP:{unit['health']}", True, (0, 0, 0))
-            atk_text = self.font.render(f"ATK:{unit['attack']}", True, (0, 0, 0))
-            
-            # 텍스트 위치 조정
-            screen.blit(name_text, (rect.x + 10, rect.y + 5))
-            screen.blit(cost_text, (rect.x + rect.width - 70, rect.y + 5))
-            screen.blit(stats_text, (rect.x + 10, rect.y + 35))
-            screen.blit(atk_text, (rect.x + 10, rect.y + 55))
+            cost_rect = cost_text.get_rect(centerx=rect.centerx, top=rect.bottom + 5)
+            screen.blit(cost_text, cost_rect)
 
-        # 선택된 유닛 표시 텍스트 위치 변경
+        # 선택된 유닛 표시 텍스트 위 변경
         selected_text = self.font.render("Selected Units (drag to reorder):", True, (0, 0, 0))
         screen.blit(selected_text, (50, HEIGHT - 240))
 
@@ -137,37 +158,39 @@ class ShopScene(Scene):
         text_rect = start_text.get_rect(center=self.start_button.center)
         screen.blit(start_text, text_rect)
 
+        # 각 유닛의 파티클 그리기
+        for unit_data in self.preview_units.values():
+            for particle in unit_data.particles:
+                particle.draw(screen)
+
     def draw_unit_slot(self, screen, unit, index, small_font, is_dragging=False):
-        # 유닛 슬롯 그리기 함수
-        sell_price = int(unit["cost"] * 0.8)
-        
         if is_dragging:
             mouse_pos = pygame.mouse.get_pos()
-            x_pos = mouse_pos[0] - 125
-            y_pos = mouse_pos[1] - 25
+            x_pos = mouse_pos[0] - 25
+            y_pos = mouse_pos[1] - 50
         else:
-            x_pos = 50 + index * 260
-            y_pos = HEIGHT - 200
+            total_width = len(self.selected_units) * 100
+            start_x = (WIDTH - total_width) / 2
+            x_pos = start_x + index * 100
+            y_pos = HEIGHT - 250  # update_selected_unit_buttons와 동일한 y 위치
 
-        button_rect = pygame.Rect(x_pos, y_pos, 250, 50)
-
-        # 배경 그리기
+        button_rect = pygame.Rect(x_pos, y_pos, 50, 100)  # 50x100으로 수정
+        # 배경 그리기 (유닛에 가려질 것이므로 드래그 시에만 표시)
         if is_dragging:
             pygame.draw.rect(screen, (230, 230, 250), button_rect)
-        else:
-            pygame.draw.rect(screen, (200, 200, 200), button_rect)
-        pygame.draw.rect(screen, (200, 200, 200), button_rect, 2)
+            pygame.draw.rect(screen, (200, 200, 200), button_rect, 2)
         
-        # 텍스트 정보
-        unit_name = self.font.render(f"- {unit['name']}", True, (0, 0, 0))
-        unit_price = small_font.render(f"Sell: {sell_price}G", True, (100, 100, 100))
-        unit_stats = small_font.render(f"HP: {unit['health']} | ATK: {unit['attack']}", 
-                                     True, (50, 50, 50))
+        # 유닛 미리보기 그리기
+        preview_unit = self.preview_units[unit['name']]
+        preview_unit.x = x_pos
+        preview_unit.y = y_pos
+        preview_unit.draw(screen)
         
-        # 텍스트 위치 조정
-        screen.blit(unit_name, (x_pos + 10, y_pos + 5))
-        screen.blit(unit_price, (x_pos + 10, y_pos + 30))
-        screen.blit(unit_stats, (x_pos + 120, y_pos + 30))
+        # 판매 가격만 유닛 아래에 표시
+        sell_price = int(unit["cost"] * 0.8)
+        price_text = small_font.render(f"{sell_price}G", True, (255, 215, 0))
+        price_rect = price_text.get_rect(centerx=button_rect.centerx, top=button_rect.bottom + 5)
+        screen.blit(price_text, price_rect)
 
     def handle_event(self, event):
         if event.type == pygame.QUIT:
@@ -230,15 +253,32 @@ class ShopScene(Scene):
                     sell_price = int(sold_unit["cost"] * 0.8)
                     self.gold += sell_price
                     self.selected_units.pop(self.drag_unit_index)
-                    self.update_selected_unit_buttons()
                 else:  # 다른 위치에서 드롭한 경우
-                    drop_pos = event.pos
-                    new_index = self.get_drop_index(drop_pos)
+                    mouse_x = event.pos[0]
+                    total_width = len(self.selected_units) * 100
+                    start_x = (WIDTH - total_width) / 2
                     
-                    if new_index is not None and new_index != self.drag_unit_index:
+                    # 각 슬롯의 x 위치 계산
+                    slot_positions = []
+                    for i in range(len(self.selected_units)):
+                        slot_x = start_x + i * 100  # 중앙 정렬된 각 슬롯의 시작 x좌표
+                        slot_positions.append((slot_x, i))
+                    
+                    # 마우스 위치와 가장 가까운 슬롯 찾기
+                    target_index = 0
+                    for i, (slot_x, _) in enumerate(slot_positions):
+                        if mouse_x > slot_x + 25:  # 슬롯의 중간점을 기준으로 판단
+                            target_index = i + 1
+                    
+                    # 범위를 벗어나지 않도록 조정
+                    target_index = min(target_index, len(self.selected_units))
+                    
+                    if target_index != self.drag_unit_index:
+                        # 유닛 재배치
                         unit = self.selected_units.pop(self.drag_unit_index)
-                        self.selected_units.insert(new_index, unit)
-                        self.update_selected_unit_buttons()
+                        if target_index > self.drag_unit_index:
+                            target_index -= 1
+                        self.selected_units.insert(target_index, unit)
                 
                 # 드래그 상태 초기화
                 self.dragging = False
@@ -246,26 +286,5 @@ class ShopScene(Scene):
                 self.drag_start_pos = None
                 self.drag_current_pos = None
                 self.sell_zone_active = False
-
-    def get_drop_index(self, pos):
-        if len(self.selected_units) == 0:
-            return None
-            
-        closest_index = 0
-        min_distance = float('inf')
-        
-        for i in range(len(self.selected_units)):
-            slot_x = 50 + i * 260 + 125  # 슬롯의 중심 x 좌표
-            slot_y = HEIGHT - 175  # 슬롯의 중심 y 좌표
-            
-            distance = math.sqrt((pos[0] - slot_x)**2 + (pos[1] - slot_y)**2)
-            
-            if distance < min_distance:
-                min_distance = distance
-                closest_index = i
-        
-        if min_distance < 100:
-            return closest_index
-            
-        return None
+                self.update_selected_unit_buttons()
 
