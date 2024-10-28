@@ -88,8 +88,6 @@ class ShopScene(Scene):
         for preview_unit in self.selected_preview_units:
             for particle in preview_unit.particles[:]:
                 particle.update()
-                if particle.should_remove():
-                    preview_unit.particles.remove(particle)
 
     def update_selected_unit_buttons(self):
         # 선택된 유닛들의 버튼 위치 업데이트 (가로 중앙 정렬)
