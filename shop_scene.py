@@ -46,12 +46,13 @@ class ShopScene(Scene):
 
 
 
-        # 드래그 앤 드롭 관련 변수 추가
+        # 드래그 앤 드롭 관련 변수 수정
         self.dragging = False
         self.drag_unit_index = None
         self.drag_start_pos = None
         self.drag_current_pos = None
-        self.mouse_moved = False  # 마우스 이동 여부를 추적하는 변수 추가
+        self.dragging_shop_unit = None  # 상점에서 드래그 중인 유닛
+        self.mouse_moved = False
 
         # 판매 영역을 상단으로 이동
         self.sell_zone = pygame.Rect(WIDTH/2 - 75, 50, 150, 80)
@@ -109,8 +110,8 @@ class ShopScene(Scene):
         gold_text = self.font.render(f"Gold: {self.gold}", True, (255, 215, 0))
         screen.blit(gold_text, (50, 20))
         
-        # 판매 영역 표시 (드래그 중일 때만)
-        if self.dragging:
+        # 판매 영역 표시 (선택된 유닛 드래그 중일 때만)
+        if self.dragging and self.drag_unit_index is not None:  # 수정된 조건
             if self.sell_zone_active:
                 pygame.draw.rect(screen, (255, 200, 200), self.sell_zone)
             else:
@@ -169,6 +170,14 @@ class ShopScene(Scene):
             for particle in unit_data.particles:
                 particle.draw(screen)
 
+        # 드래그 중인 상점 유닛 그리기
+        if self.dragging and self.dragging_shop_unit:
+            mouse_pos = pygame.mouse.get_pos()
+            preview_unit = self.preview_units[self.dragging_shop_unit["name"]]
+            preview_unit.x = mouse_pos[0] - 25
+            preview_unit.y = mouse_pos[1] - 50
+            preview_unit.draw(screen)
+
     def draw_unit_slot(self, screen, unit, index, small_font, is_dragging=False):
         if is_dragging:
             mouse_pos = pygame.mouse.get_pos()
@@ -204,15 +213,24 @@ class ShopScene(Scene):
             
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # 좌클릭
-                # 선택된 유닛 영역 확인
-                mouse_pos = event.pos
+                # 선택된 유닛 드래그 체크
                 for i, button in enumerate(self.selected_unit_buttons):
-                    if button["rect"].collidepoint(mouse_pos):
+                    if button["rect"].collidepoint(event.pos):
                         self.dragging = True
                         self.drag_unit_index = i
-                        self.drag_start_pos = mouse_pos
+                        self.drag_start_pos = event.pos
                         return
                 
+                # 상점 유닛 드래그 체크
+                for button in self.unit_buttons:
+                    if button["rect"].collidepoint(event.pos):
+                        unit = button["unit"]
+                        if self.gold >= unit["cost"]:
+                            self.dragging = True
+                            self.dragging_shop_unit = unit
+                            self.drag_start_pos = event.pos
+                            return
+
                 # 시작 버튼 클릭 처리
                 if self.start_button.collidepoint(event.pos):
                     reset_game_state(game_state)
@@ -245,43 +263,62 @@ class ShopScene(Scene):
                 
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1 and self.dragging:
-                if self.sell_zone_active:  # 판매 영역에서 드롭한 경우
-                    sold_unit = self.selected_preview_units[self.drag_unit_index]
-                    sell_price = int(sold_unit.cost * 0.8)
-                    self.gold += sell_price
-                    self.selected_preview_units.pop(self.drag_unit_index)
-                else:  # 다른 위치에서 드롭한 경우
-                    mouse_x = event.pos[0]
-                    total_width = len(self.selected_preview_units) * 100
-                    start_x = (WIDTH - total_width) / 2
-                    
-                    # 각 슬롯의 x 위치 계산
-                    slot_positions = []
-                    for i in range(len(self.selected_preview_units)):
-                        slot_x = start_x + i * 100  # 중앙 정렬된 각 슬롯의 시작 x좌표
-                        slot_positions.append((slot_x, i))
-                    
-                    # 마우스 위치와 가장 가까운 슬롯 찾기
-                    target_index = 0
-                    for i, (slot_x, _) in enumerate(slot_positions):
-                        if mouse_x > slot_x + 25:  # 슬롯의 중간점을 기준으로 판단
-                            target_index = i + 1
-                    
-                    # 범위를 벗어나지 않도록 조정
-                    target_index = min(target_index, len(self.selected_preview_units))
-                    
-                    if target_index != self.drag_unit_index:
-                        # 유닛 재배치
-                        unit = self.selected_preview_units.pop(self.drag_unit_index)
-                        if target_index > self.drag_unit_index:
-                            target_index -= 1
-                        self.selected_preview_units.insert(target_index, unit)
+                mouse_pos = event.pos
+                selected_area_rect = pygame.Rect(0, HEIGHT - 300, WIDTH, 200)  # 선택된 유닛 영역
+
+                if self.dragging_shop_unit:  # 상점 유닛을 드래그 중이었다면
+                    if selected_area_rect.collidepoint(mouse_pos) and len(self.selected_preview_units) < 7:
+                        # 구매 처리
+                        unit = self.dragging_shop_unit
+                        self.gold -= unit["cost"]
+                        new_unit = unit["type"](0, PLAYER_Y, unit["health"], unit["attack"], BLUE, game_state)
+                        
+                        # 드롭 위치에 따라 삽입 위치 결정
+                        mouse_x = mouse_pos[0]
+                        total_width = len(self.selected_preview_units) * 100
+                        start_x = (WIDTH - total_width) / 2
+                        
+                        target_index = 0
+                        for i in range(len(self.selected_preview_units)):
+                            slot_x = start_x + i * 100
+                            if mouse_x > slot_x + 25:
+                                target_index = i + 1
+                        
+                        self.selected_preview_units.insert(target_index, new_unit)
+                        new_unit.on_spawn(self.selected_preview_units, [])
                 
+                elif self.drag_unit_index is not None:  # 기존 유닛을 드래그 중이었다면
+                    if self.sell_zone_active:
+                        # 판매 처리
+                        sold_unit = self.selected_preview_units[self.drag_unit_index]
+                        sell_price = int(sold_unit.cost * 0.8)  # 80% 가격으로 판매
+                        self.gold += sell_price
+                        self.selected_preview_units.pop(self.drag_unit_index)
+                    else:
+                        # 유닛 순서 재정렬
+                        mouse_x = mouse_pos[0]
+                        total_width = len(self.selected_preview_units) * 100
+                        start_x = (WIDTH - total_width) / 2
+                        
+                        # 드래그 중인 유닛을 임시로 제거
+                        dragged_unit = self.selected_preview_units.pop(self.drag_unit_index)
+                        
+                        # 새로운 위치 계산
+                        target_index = 0
+                        for i in range(len(self.selected_preview_units)):
+                            slot_x = start_x + i * 100
+                            if mouse_x > slot_x + 25:
+                                target_index = i + 1
+                        
+                        # 계산된 위치에 유닛 삽입
+                        self.selected_preview_units.insert(target_index, dragged_unit)
+
                 # 드래그 상태 초기화
                 self.dragging = False
                 self.drag_unit_index = None
                 self.drag_start_pos = None
                 self.drag_current_pos = None
+                self.dragging_shop_unit = None
                 self.sell_zone_active = False
                 self.update_selected_unit_buttons()
 
