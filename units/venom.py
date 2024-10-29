@@ -5,8 +5,8 @@ from particle import Particle
 import pygame
 
 class Venom(Unit):
-    def __init__(self, x, y, health, attack, color, game_state):
-        super().__init__(x, y, health, attack, color, game_state)  # 고정된 스탯 사용
+    def __init__(self, x, y, health, attack, color, game_state, cost=350):
+        super().__init__(x, y, health, attack, color, game_state, cost)  # 고정된 스탯 사용
         self.name = "Venom"
         self.venom_charges = 3
         self.poison_particle_timer = 0

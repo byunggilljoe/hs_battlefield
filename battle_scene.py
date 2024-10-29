@@ -1,5 +1,6 @@
 import pygame
 import random
+import copy
 from constants import HEIGHT, RED, ENEMY_Y, PLAYER_Y
 from scene import Scene
 from game_logic import (
@@ -29,18 +30,13 @@ class BattleScene(Scene):
         self.previous_shop_scene = previous_shop_scene
         self.game_state["player_units"] = player_units
 
-        # 전투 시작 시 유닛 정보 저장
+        # 전투 시작 시 유닛 객체들을 깊은 복사하여 저장
         self.initial_units = []
         for unit in self.game_state["player_units"]:
-            unit_info = {
-                "type": type(unit),
-                "name": unit.name,
-                "health": unit.health,
-                "attack": unit.attack,
-                "cost": next(u["cost"] for u in self.previous_shop_scene.available_units 
-                           if u["name"] == unit.name)
-            }
-            self.initial_units.append(unit_info)
+            unit_copy = copy.deepcopy(unit)
+            # 파티클 리스트는 새로 초기화 (deepcopy 시 pygame Surface 객체 때문에 오류 발생 가능)
+            unit_copy.particles = []
+            self.initial_units.append(unit_copy)
         
         self.initialize_enemy_units()
         

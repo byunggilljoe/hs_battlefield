@@ -5,7 +5,7 @@ from constants import screen, WIDTH, HEIGHT
 from particle import Particle
 
 class Unit:
-    def __init__(self, x, y, health, attack, color, game_state):
+    def __init__(self, x, y, health, attack, color, game_state, cost=3):
         self.name = "Unit"
         self.original_x = x
         self.original_y = y
@@ -40,6 +40,7 @@ class Unit:
         self.shake_offset = 0  # 좌우 흔들림을 위한 오프셋
         self.shake_speed = 8   # 흔들림 속도
         self.shake_amount = 2  # 최대 흔들림 범위
+        self.cost = cost
 
     def draw(self, screen):
         # 페이딩 중일 때 흔들림 효과 계산

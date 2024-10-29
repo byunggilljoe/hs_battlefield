@@ -5,8 +5,8 @@ from particle import Particle
 import pygame
 
 class Warlord(Unit):
-    def __init__(self, x, y, health, attack, color, game_state):
-        super().__init__(x, y, health, attack, color, game_state)
+    def __init__(self, x, y, health, attack, color, game_state, cost=350):
+        super().__init__(x, y, health, attack, color, game_state, cost)
         self.name = "Warlord"
         self.battle_cry = True
         

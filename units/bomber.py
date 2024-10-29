@@ -4,8 +4,8 @@ import math
 from particle import Particle
 import game_logic
 class Bomber(Unit):
-    def __init__(self, x, y, health, attack, color, game_state):
-        super().__init__(x, y, health, attack, color, game_state)
+    def __init__(self, x, y, health, attack, color, game_state, cost=300):
+        super().__init__(x, y, health, attack, color, game_state, cost)
         self.name = "Bomber"
         self.exploded = False
         self.bomb_damage = 10
