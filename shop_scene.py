@@ -206,6 +206,13 @@ class ShopScene(Scene):
         price_rect = price_text.get_rect(centerx=button_rect.centerx, top=button_rect.bottom + 5)
         screen.blit(price_text, price_rect)
 
+        # 더미 유닛은 반투명하게 표시
+        if hasattr(unit, 'is_dummy'):
+            s = pygame.Surface((50, 100))
+            s.set_alpha(128)
+            s.fill((200, 200, 200))
+            screen.blit(s, (x_pos, y_pos))
+
     def handle_event(self, event):
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -225,10 +232,16 @@ class ShopScene(Scene):
                 for button in self.unit_buttons:
                     if button["rect"].collidepoint(event.pos):
                         unit = button["unit"]
-                        if self.gold >= unit["cost"]:
+                        if self.gold >= unit["cost"] and len(self.selected_preview_units) < 7:
                             self.dragging = True
                             self.dragging_shop_unit = unit
                             self.drag_start_pos = event.pos
+                            
+                            # 임시 더미 유닛 추가
+                            dummy_unit = unit["type"](0, PLAYER_Y, unit["health"], unit["attack"], (150, 150, 150), game_state)  # 회색으로 표시
+                            dummy_unit.is_dummy = True  # 더미 유닛 표시를 위한 플래그
+                            self.selected_preview_units.append(dummy_unit)
+                            self.update_selected_unit_buttons()
                             return
 
                 # 시작 버튼 클릭 처리
@@ -261,10 +274,37 @@ class ShopScene(Scene):
                 # 판매 영역 활성화 상태 업데이트
                 self.sell_zone_active = self.sell_zone.collidepoint(event.pos)
                 
+                # 드래그 중인 더미 유닛의 위치 업데이트
+                if self.dragging_shop_unit:
+                    # 더미 유닛 찾기
+                    dummy_index = next((i for i, unit in enumerate(self.selected_preview_units) 
+                                     if hasattr(unit, 'is_dummy')), None)
+                    if dummy_index is not None:
+                        # 현재 더미 유닛 제거
+                        dummy_unit = self.selected_preview_units.pop(dummy_index)
+                        
+                        # 마우스 위치에 따른 새로운 위치 계산
+                        mouse_x = event.pos[0]
+                        total_width = len(self.selected_preview_units) * 100
+                        start_x = (WIDTH - total_width) / 2
+                        
+                        target_index = 0
+                        for i in range(len(self.selected_preview_units)):
+                            slot_x = start_x + i * 100
+                            if mouse_x > slot_x + 25:
+                                target_index = i + 1
+                        
+                        # 더미 유닛을 새 위치에 삽입
+                        self.selected_preview_units.insert(target_index, dummy_unit)
+                        self.update_selected_unit_buttons()
+
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1 and self.dragging:
                 mouse_pos = event.pos
                 selected_area_rect = pygame.Rect(0, HEIGHT - 300, WIDTH, 200)  # 선택된 유닛 영역
+
+                # 더미 유닛 제거
+                self.selected_preview_units = [unit for unit in self.selected_preview_units if not hasattr(unit, 'is_dummy')]
 
                 if self.dragging_shop_unit:  # 상점 유닛을 드래그 중이었다면
                     if selected_area_rect.collidepoint(mouse_pos) and len(self.selected_preview_units) < 7:
