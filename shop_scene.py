@@ -13,6 +13,8 @@ from game_state import game_state, reset_game_state
 import math
 from units.warlord import Warlord
 from units.buffer import Buffer
+from units.attack_buffer import AttackBuffer
+from units.necromancer import Necromancer
 
 class ShopScene(Scene):
     def __init__(self, scene_manager, previous_units=None, previous_gold=None):
@@ -28,7 +30,9 @@ class ShopScene(Scene):
             {"type": Phoenix, "name": "Phoenix", "cost": 400, "health": 60, "attack": 20},
             {"type": Venom, "name": "Venom", "cost": 350, "health": 40, "attack": 25},
             {"type": Bomber, "name": "Bomber", "cost": 300, "health": 20, "attack": 15},
-            {"type": Buffer, "name": "Buffer", "cost": 350, "health": 45, "attack": 15}
+            {"type": Buffer, "name": "Buffer", "cost": 350, "health": 45, "attack": 15},
+            {"type": AttackBuffer, "name": "AttackBuffer", "cost": 300, "health": 40, "attack": 10},
+            {"type": Necromancer, "name": "Necromancer", "cost": 300, "health": 40, "attack": 10},
         ]
         
         # 버튼 위치 설정 (가로로 배치)
@@ -65,7 +69,9 @@ class ShopScene(Scene):
             "Phoenix": Phoenix(0, 0, 60, 20, BLUE, game_state, cost=400),
             "Venom": Venom(0, 0, 40, 25, BLUE, game_state, cost=350),
             "Bomber": Bomber(0, 0, 20, 15, BLUE, game_state, cost=300),
-            "Buffer": Buffer(0, 0, 45, 15, BLUE, game_state, cost=350)
+            "Buffer": Buffer(0, 0, 45, 15, BLUE, game_state, cost=350),
+            "AttackBuffer": AttackBuffer(0, 0, 40, 10, BLUE, game_state, cost=300),
+            "Necromancer": Necromancer(0, 0, 40, 10, BLUE, game_state, cost=300),
         }
         
         # 선택된 유닛들의 미리보기 인스턴스 생성
