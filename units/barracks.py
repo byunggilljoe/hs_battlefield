@@ -7,8 +7,12 @@ class Barracks(Unit):
         super().__init__(x, y, health, attack, color, game_state, cost)
         self.name = "Barracks"
         self.taunt = True
+        self.image_path = "images/units/barracks.png"
+        self.load_image()
         
-    def on_death(self):
+    def on_death(self, dead_unit, player_units, enemy_units):
+        if self is not dead_unit:
+            return
             
         # 자신이 속한 팀을 확인
         if self in self.game_state['player_units']:
@@ -34,4 +38,4 @@ class Barracks(Unit):
                             self.game_state['enemy_units'])
         self.game_state["adjusting_positions"] = True
 
-        super().on_death()
+        super().on_death(dead_unit, player_units, enemy_units)

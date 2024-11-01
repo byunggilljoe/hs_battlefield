@@ -164,7 +164,10 @@ def handle_unit_combat(attacking_unit, target_unit, player_units, enemy_units):
     move_status = attacking_unit.move_to_target()
     
     if move_status == "attack":
-        attacking_unit.on_attack(target_unit, player_units, enemy_units)
+        # 모든 유닛에게 attack 이벤트를 broadcast
+        for unit in player_units + enemy_units:
+            unit.on_attack(attacking_unit, target_unit, player_units, enemy_units)
+            
         attacking_unit.apply_damage(target_unit)
         target_unit.apply_damage(attacking_unit)
         attacking_unit.returning = True
@@ -191,7 +194,9 @@ def handle_death(units):
     for unit in units:
         if unit.health <= 0 and not unit.ready_to_fade:
             unit.prepare_to_fade()
-            unit.on_death()
+            # 모든 유닛에게 death 이벤트를 broadcast
+            for observer_unit in game_state["player_units"] + game_state["enemy_units"]:
+                observer_unit.on_death(unit, game_state["player_units"], game_state["enemy_units"])
         if unit.should_create_particles:
             unit.create_particles()
             unit.should_create_particles = False

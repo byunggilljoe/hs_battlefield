@@ -9,9 +9,11 @@ class Phoenix(Unit):
         super().__init__(x, y, health, attack, color, game_state, cost)
         self.name = "Phoenix"
 
-    def on_death(self):
-        print("Phoenix on_death called.")  
-        super().on_death()
+    def on_death(self, dead_unit, player_units, enemy_units):
+        print("Phoenix on_death called.")
+        if self is not dead_unit:
+            return  
+        super().on_death(dead_unit, player_units, enemy_units)
 
         
         # 자신이 속한 팀을 확인

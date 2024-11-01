@@ -8,7 +8,9 @@ class Healer(Unit):
         super().__init__(x, y, health, attack, color, game_state, cost)
         self.name="Healer"
         
-    def on_start_move(self):
+    def on_start_move(self, moving_unit, target_unit, player_units, enemy_units):
+        if self is not moving_unit:
+            return
         self.health = self.health * 2
         # 힐링 효과를 표현하는 파티클 생성
         self.create_heal_particles()

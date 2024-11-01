@@ -10,7 +10,8 @@ class Venom(Unit):
         self.name = "Venom"
         self.venom_charges = 3
         self.poison_particle_timer = 0
-        
+        self.image_path = "images/units/venom.png"
+        self.load_image()
     def draw(self, screen):
         # 독 상태를 나타내는 녹색 rect를 먼저 그림
         venom_thickness = 15
@@ -56,11 +57,13 @@ class Venom(Unit):
                 )
             )
     
-    def on_spawn(self, player_units, enemy_units):
+    def on_spawn(self, spawned_unit, player_units, enemy_units):
+        if spawned_unit is not self:
+            return
         # 독 충전량 초기화
         self.venom_charges = 3  # 3번의 즉사 독 사용 가능
         
-    def on_attack(self, target, player_units, enemy_units):
+    def on_attack(self, attacker, target, player_units, enemy_units):
         if self.venom_charges > 0:
             # 독 사용 시 대상 즉시 처치
             target.update_health(0)  # 체력을 0으로 만듦

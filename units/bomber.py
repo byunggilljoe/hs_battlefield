@@ -9,24 +9,27 @@ class Bomber(Unit):
         self.name = "Bomber"
         self.exploded = False
         self.bomb_damage = 10
+        self.image_path = "images/units/bomber.png"
+        self.load_image()
 
-    def on_death(self):
-        if not self.exploded:
+    def on_death(self, dead_unit, player_units, enemy_units):
+        # 죽은 유닛이 자신일 때만 폭발 효과 적용
+        if dead_unit == self and not self.exploded:
             self.exploded = True
             # 자신이 속한 팀 확인
-            if self in self.game_state['player_units']:
-                enemy_units = self.game_state['enemy_units']
+            if self in player_units:
+                target_units = enemy_units
             else:
-                enemy_units = self.game_state['player_units']
+                target_units = player_units
             
-            # 모든 적 유닛의 체력을 절반으로 하고 해당 위치에 폭발 효과 생성
-            for unit in enemy_units:
+            # 모든 적 유닛의 체력을 감소시키고 해당 위치에 폭발 효과 생성
+            for unit in target_units:
                 if not unit.dead:
                     unit.update_health(unit.health - self.bomb_damage)
                     self.create_explosion_particles(unit.x, unit.y)
-            game_logic.handle_death(enemy_units)
+            game_logic.handle_death(target_units)
         
-        super().on_death()
+        super().on_death(dead_unit, player_units, enemy_units)
     
     def create_explosion_particles(self, target_x, target_y):
         explosion_colors = [(255, 165, 0), (255, 69, 0), (255, 0, 0)]  # 주황색, 붉은 주황색, 빨간색

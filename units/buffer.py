@@ -20,8 +20,11 @@ class Buffer(Unit):
         # 기본 유닛 그리기
         super().draw(screen)
         
-    def on_spawn(self, player_units, enemy_units):
+    def on_spawn(self, spawned_unit, player_units, enemy_units):
+        if spawned_unit is not self:
+            return
         # 같은 팀의 유닛들 찾기
+        
         if self in player_units:
             team_units = player_units
         else:

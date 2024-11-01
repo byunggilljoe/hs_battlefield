@@ -3,6 +3,8 @@ import random
 import math
 from constants import screen, WIDTH, HEIGHT
 from particle import Particle
+import copy
+from image_manager import ImageManager
 
 class Unit:
     def __init__(self, x, y, health, attack, color, game_state, cost=3):
@@ -42,6 +44,19 @@ class Unit:
         self.shake_amount = 2  # 최대 흔들림 범위
         self.cost = cost
 
+        # 이미지 관련 속성
+        self.image = None
+        self.image_width = 50
+        self.image_height = 100
+        
+        # 이미지 로드 (이미 로드된 이미지 사용)
+        if hasattr(self, 'image_path'):
+            self.image = ImageManager.load_image(self.image_path)
+
+    def load_image(self):
+        if hasattr(self, 'image_path'):
+            self.image = ImageManager.load_image(self.image_path)
+
     def draw(self, screen):
         # 페이딩 중일 때 흔들림 효과 계산
         current_x = self.x
@@ -57,11 +72,24 @@ class Unit:
                            (0, 0, 50 + taunt_thickness, 100 + taunt_thickness))
             screen.blit(taunt_surface, (current_x - taunt_thickness//2, self.y - taunt_thickness//2))
         
-        # 기본 유닛 그리기
+        # 유닛 그리기 (이미지 또는 사각형)
         unit_surface = pygame.Surface((50, 100), pygame.SRCALPHA)
-        pygame.draw.rect(unit_surface, (*self.color, self.fade_alpha if self.fading and self.ready_to_fade else 255), 
-                        (0, 0, 50, 100))
-        screen.blit(unit_surface, (current_x, self.y))
+        if self.image:
+            # 이미지가 있는 경우 이미지 사용
+            image_copy = self.image.copy()
+            # 페이딩 효과 적용
+            if self.fading and self.ready_to_fade:
+                image_copy.set_alpha(self.fade_alpha)
+            
+            # 이미지를 유닛 영역의 중앙에 배치
+            image_x = current_x + (50 - self.image_width) // 2
+            image_y = self.y
+            screen.blit(image_copy, (image_x, image_y))
+        else:
+            # 이미지가 없는 경우 기존 사각형 그리기
+            pygame.draw.rect(unit_surface, (*self.color, self.fade_alpha if self.fading and self.ready_to_fade else 255), 
+                           (0, 0, 50, 100))
+            screen.blit(unit_surface, (current_x, self.y))
 
         # 텍스트 그리기도 흔들림 효과 적용
         font = pygame.font.Font(None, 24)
@@ -119,7 +147,8 @@ class Unit:
         if self.target_unit:
             if self.start_attack_x is None:
                 # starts to move
-                self.on_start_move()
+                for unit in self.game_state["player_units"] + self.game_state["enemy_units"]:
+                    unit.on_start_move(self, self.target_unit, self.game_state["player_units"], self.game_state["enemy_units"])
                 self.start_attack_x = self.x
                 self.start_attack_y = self.y
 
@@ -206,16 +235,53 @@ class Unit:
     def apply_damage(self, target_unit):
         target_unit.update_health(target_unit.health - self.attack)
         
-    def on_spawn(self, player_units, enemy_units):
-        # 기본 구현은 아무것도 하지 않음
-        pass
+    def on_spawn(self, spawned_unit, player_units, enemy_units):
+        """
+        유닛이 스폰되었을 때 호출되는 메서드
+        spawned_unit: 스폰된 유닛
+        player_units: 플레이어 유닛 리스트
+        enemy_units: 적 유닛 리스트
+        """
+        pass  # 기본 유닛은 아무 동작도 하지 않음
     
-    def on_start_move(self):
-        pass
+    def on_start_move(self, moving_unit, target_unit, player_units, enemy_units):
+        """
+        유닛이 이동을 시작할 때 호출되는 메서드
+        moving_unit: 이동을 시작하는 유닛
+        target_unit: 이동 대상 유닛
+        player_units: 플레이어 유닛 리스트
+        enemy_units: 적 유닛 리스트
+        """
+        pass  # 기본 유닛은 아무 동작도 하지 않음
+    
+    def on_attack(self, attacker, target, player_units, enemy_units):
+        """
+        유닛에서 공격 이벤트가 발생했을 때 호출되는 메서드
+        attacker: 공격을 시도하는 유닛
+        target: 공격 대상 유닛
+        """
+        pass  # 기본 유닛은 아무 동작도 하지 않음
+    
+    def on_death(self, dead_unit, player_units, enemy_units):
+        """
+        유닛이 죽었을 때 호출되는 메서드
+        dead_unit: 죽은 유닛
+        player_units: 플레이어 유닛 리스트
+        enemy_units: 적 유닛 리스트
+        """
+        pass  # 기본 유닛은 아무 동작도 하지 않음
 
-    def on_attack(self, target, player_units, enemy_units):
-        pass
-    
-    def on_death(self):
-        pass
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        
+        for k, v in self.__dict__.items():
+            if k == 'image':
+                # image는 ImageManager에서 참조하므로 그대로 복사
+                setattr(result, k, v)
+            else:
+                setattr(result, k, copy.deepcopy(v, memo))
+            
+        return result
 

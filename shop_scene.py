@@ -243,7 +243,6 @@ class ShopScene(Scene):
                             self.selected_preview_units.append(dummy_unit)
                             self.update_selected_unit_buttons()
                             return
-
                 # 시작 버튼 클릭 처리
                 if self.start_button.collidepoint(event.pos):
                     reset_game_state(game_state)
@@ -255,18 +254,6 @@ class ShopScene(Scene):
                         self.selected_preview_units
                     ))
                 
-                # 유닛 구매 버튼 처리
-                for button in self.unit_buttons:
-                    if button["rect"].collidepoint(event.pos):
-                        unit = button["unit"]
-                        if self.gold >= unit["cost"] and len(self.selected_preview_units) < 7:
-                            self.gold -= unit["cost"]
-                            # 새로운 유닛 인스턴스 생성 및 추가
-                            new_unit = unit["type"](0, PLAYER_Y, unit["health"], unit["attack"], BLUE, game_state)
-                            self.selected_preview_units.append(new_unit)
-                            # on_spawn 호출
-                            new_unit.on_spawn(self.selected_preview_units, [])
-                            self.update_selected_unit_buttons()
                 
         elif event.type == pygame.MOUSEMOTION:
             if self.dragging:
@@ -325,7 +312,7 @@ class ShopScene(Scene):
                                 target_index = i + 1
                         
                         self.selected_preview_units.insert(target_index, new_unit)
-                        new_unit.on_spawn(self.selected_preview_units, [])
+                        new_unit.on_spawn(new_unit, self.selected_preview_units, [])
                 
                 elif self.drag_unit_index is not None:  # 기존 유닛을 드래그 중이었다면
                     if self.sell_zone_active:

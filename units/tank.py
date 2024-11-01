@@ -6,4 +6,6 @@ class Tank(Unit):
         super().__init__(x, y, health, attack, color, game_state, cost)
         self.name = "Tank"
         self.taunt = True
+        self.image_path = "images/units/tank.png"
+        self.load_image()
 

@@ -9,7 +9,10 @@ class Warlord(Unit):
         super().__init__(x, y, health, attack, color, game_state, cost)
         self.name = "Warlord"
         self.battle_cry = True
+        self.image_path = "images/units/warlord.png"
+        self.load_image()
         
+
     def draw(self, screen):
         # 전장의 함성 특성을 나타내는 붉은 테두리
         cry_thickness = 15
