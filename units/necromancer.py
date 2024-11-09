@@ -31,17 +31,21 @@ class Necromancer(Unit):
             # 모든 죽은 아군을 부활
             print(f"부활 시작: {self.dead_allies}")
             for ally in self.dead_allies:
-                ally.health = 1  # 체력 1로 부활
-                ally.dead = False
-                ally.exploded = False
-                ally.fade_alpha = 50
-                ally.fading = False
-                ally.ready_to_fade = False
-                alley_units.append(ally)
-                self.create_revival_particles(ally.x, ally.y)
+                self.revive_unit(ally, alley_units)
             print(f"부활 후 아군 유닛: {alley_units}")
             self.dead_allies.clear()  # 부활 후 리스트 비우기
-
+            self.game_state["initial_adjustment"] = True
+    
+    def revive_unit(self, ally, alley_units):
+        ally.health = 1  # 체력 1로 부활
+        ally.dead = False
+        ally.exploded = False
+        ally.fade_alpha = 50
+        ally.fading = False
+        ally.ready_to_fade = False
+        alley_units.append(ally)
+        self.create_revival_particles(ally.x, ally.y)
+        
     def create_death_particles(self, x, y):
         """죽은 아군 흡수 효과를 나타내는 파티클"""
         death_colors = [(128, 0, 128), (75, 0, 130), (106, 90, 205)]  # 보라색 계열

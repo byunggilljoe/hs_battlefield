@@ -26,13 +26,14 @@ class ShopScene(Scene):
         # 구매 가능한 유닛들과 가격
         self.available_units = [
             {"type": Tank, "name": "Tank", "cost": 300, "health": 100, "attack": 10},
-            {"type": Healer, "name": "Healer", "cost": 250, "health": 50, "attack": 15},
+           # {"type": Healer, "name": "Healer", "cost": 250, "health": 50, "attack": 15},
             {"type": Phoenix, "name": "Phoenix", "cost": 400, "health": 60, "attack": 20},
             {"type": Venom, "name": "Venom", "cost": 350, "health": 40, "attack": 25},
             {"type": Bomber, "name": "Bomber", "cost": 300, "health": 20, "attack": 15},
             {"type": Buffer, "name": "Buffer", "cost": 350, "health": 45, "attack": 15},
             {"type": AttackBuffer, "name": "AttackBuffer", "cost": 300, "health": 40, "attack": 10},
             {"type": Necromancer, "name": "Necromancer", "cost": 300, "health": 40, "attack": 10},
+            {"type": Splash, "name": "Splash", "cost": 300, "health": 40, "attack": 20},
         ]
         
         # 버튼 위치 설정 (가로로 배치)
@@ -72,6 +73,7 @@ class ShopScene(Scene):
             "Buffer": Buffer(0, 0, 45, 15, BLUE, game_state, cost=350),
             "AttackBuffer": AttackBuffer(0, 0, 40, 10, BLUE, game_state, cost=300),
             "Necromancer": Necromancer(0, 0, 40, 10, BLUE, game_state, cost=300),
+            "Splash": Splash(0, 0, 40, 20, BLUE, game_state, cost=300),
         }
         
         # 선택된 유닛들의 미리보기 인스턴스 생성
